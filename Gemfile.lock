@@ -1,0 +1,12 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    gosu (0.8.7.2)
+    minitest (5.4.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  gosu
+  minitest
