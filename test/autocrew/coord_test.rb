@@ -57,5 +57,23 @@ module Autocrew
       assert_in_delta -7.8440168472892, coord2.x
       assert_in_delta 89.6575228282571, coord2.y
     end
+
+    test "add two coords" do
+      coord1 = Coord.new(10, 10)
+      coord2 = Coord.new( 5, -5)
+      coord = coord1 + coord2
+      assert_equal 15, coord.x
+      assert_equal  5, coord.y
+    end
+
+    test "compare two coords" do
+      coord1 = Coord.new(10, 10)
+      coord2 = Coord.new(10, 10)
+      assert_equal coord1, coord2
+
+      coord1 = Coord.new(10, 10)
+      coord2 = Coord.new(10.0, 10.0)
+      assert_equal coord1, coord2
+    end
   end
 end

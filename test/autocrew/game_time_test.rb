@@ -50,5 +50,12 @@ module Autocrew
       time2 = GameTime.from_values(1, 23, 45, 6.78)
       assert_equal GameTime.from_values(7, 10, 26, 5.35), time1 - time2
     end
+
+    test "compare two GameTimes" do
+      time1 = GameTime.from_values(1, 23, 45, 6.78)
+      time2 = GameTime.from_values(9, 10, 11, 12.13)
+      assert time1 < time2
+      assert time2 > time1
+    end
   end
 end

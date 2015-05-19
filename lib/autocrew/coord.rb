@@ -20,5 +20,13 @@ module Autocrew
       new_y = @y + Math.cos(radians) * distance
       self.class.new(new_x, new_y)
     end
+
+    def +(other)
+      self.class.new(@x + other.x, @y + other.y)
+    end
+
+    def ==(other)
+      @x == other.x && @y == other.y
+    end
   end
 end

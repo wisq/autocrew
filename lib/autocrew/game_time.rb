@@ -52,4 +52,12 @@ class Autocrew::GameTime
   def -(other)
     self.class.new(@timestamp - other.to_f)
   end
+
+  def <(other)
+    self.to_f < other.to_f
+  end
+
+  def >(other)
+    self.to_f > other.to_f
+  end
 end
