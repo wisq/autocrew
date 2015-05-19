@@ -2,15 +2,24 @@ require 'autocrew/coord'
 
 module Autocrew
   class OwnShip
-    def initialize(time, course, speed)
-      @start  = time
-      @course = course
-      @speed  = speed
+    attr_reader :movements
+
+    def initialize(start_time)
+      @start_time = start_time
+      @movements = []
     end
 
     def location(time)
-      delta = time - @start
-      Coord.new(0, 0).travel(@course, @speed * delta.hours_f)
+      offset = time - @start_time
+      return if offset < 0
+
+      coord = Coord.new(0, 0)
+      @movements.each do |movement|
+        coord, offset = movement.apply(coord, offset)
+        return coord if offset.nil?
+      end
+
+      raise "reached end of movement list"
     end
   end
 end

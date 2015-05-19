@@ -28,6 +28,17 @@ module Autocrew
     end
 
 
+    class Straight::Unbounded < Straight
+      def initialize(bearing, speed)
+        super(nil, bearing, speed)
+      end
+
+      def apply(coord, time)
+        return [coord + calculate(time), nil]
+      end
+    end
+
+
     class Curved < Movement
       def initialize(duration, init_bearing, direction, final_bearing, speed)
         raise "Unknown direction: #{direction.inspect}" unless [:port, :starboard].include?(direction)
