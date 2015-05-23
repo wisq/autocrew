@@ -1,32 +1,35 @@
-require 'autocrew'
+require 'autocrew/vector'
 
 module Autocrew
   class Coord
     attr_reader :x, :y
 
     def initialize(x, y)
-      @x = x
-      @y = y
-    end
-
-    # FIXME move this to a better class
-    def self.deg2rad(degrees)
-      degrees * Math::PI / 180
+      @x = x.to_f
+      @y = y.to_f
     end
 
     def travel(bearing, distance)
-      radians = self.class.deg2rad(bearing)
-      new_x = @x + Math.sin(radians) * distance
-      new_y = @y + Math.cos(radians) * distance
-      self.class.new(new_x, new_y)
+      vector = Vector.bearing(bearing)
+      self + (vector * distance)
     end
 
     def +(other)
       self.class.new(@x + other.x, @y + other.y)
     end
 
+    def -(other)
+      Vector.create(@x - other.x, @y - other.y)
+    end
+
     def ==(other)
       @x == other.x && @y == other.y
+    end
+
+    def distance_squared_to(other)
+      dx = other.x - @x
+      dy = other.y - @y
+      dx*dx + dy*dy
     end
   end
 end

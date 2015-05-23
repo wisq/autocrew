@@ -2,7 +2,10 @@ GEM
   remote: https://rubygems.org/
   specs:
     gosu (0.8.7.2)
+    metaclass (0.0.4)
     minitest (5.4.3)
+    mocha (1.1.0)
+      metaclass (~> 0.0.1)
     narray (0.6.1.1)
     rb-gsl (1.16.0.4)
       narray (>= 0.5.9)
@@ -13,4 +16,5 @@ PLATFORMS
 DEPENDENCIES
   gosu
   minitest
+  mocha
   rb-gsl
