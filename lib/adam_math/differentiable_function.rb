@@ -14,7 +14,7 @@ module AdamMath
     end
 
     # Returns the value of the function's first derivative at the given point.
-    def evaluate_derivative(x, derivs = 1)
+    def call_derivative(x, derivs = 1)
       raise "derivs must be 1" unless derivs == 1
       @derivative.call(x)
     end
