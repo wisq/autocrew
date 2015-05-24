@@ -2,10 +2,6 @@ require 'autocrew/solver/error_function_base'
 
 module Autocrew::Solver
   class RangeErrorFunction < ErrorFunctionBase
-    def initialize(unit)
-      @unit = unit
-    end
-
     def arity
       return 5
     end
@@ -29,6 +25,7 @@ module Autocrew::Solver
         observer_point = observation.observer.location(observation.game_time)
         bearing_vector = observation.bearing_vector
         obs_vector = unit_point - observer_point
+
         if bearing_vector.dot_product(obs_vector) >= 0  # if the target position is on the correct side of the observer...
           # then the error is the signed distance to the bearing line, which equals the dot product of the cross vector (which is
           # already normalized) and the observation vector
