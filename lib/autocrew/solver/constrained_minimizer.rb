@@ -117,7 +117,7 @@ module Autocrew::Solver
       check_arity("dimensions of initial guess", guess.count)
 
       # if no constraints have been added, just minimize the function normally
-      return bfgs(function, x) if @bounds.all?(&:nil?) && @constraints.empty?
+      return bfgs(function, guess) if @bounds.all?(&:nil?) && @constraints.empty?
 
       penalty_function = PenaltyFunction.new(self, @base_penalty_multiplier)
 
@@ -136,7 +136,7 @@ module Autocrew::Solver
 
         if penalty_function.last_penalty.abs <= new_value.abs * @constraint_tolerance
           return new_value
-        elsif iteration > 0 && get_parameter_convergence(new_x, x) <= @parameter_tolerance
+        elsif iteration > 0 && parameter_convergence(new_x, x) <= @parameter_tolerance
           return new_value
         elsif (new_value - value).abs / [1, value.abs].max <= @value_tolerance
           return new_value
@@ -146,7 +146,7 @@ module Autocrew::Solver
         x = new_x
 
         # if we're using a barrier method, we need to decrease the penalty factor on each iteration. otherwise, we need to increase it
-        penalty_function.adjust_penalty_factor(@constraint_enforcement)
+        penalty_function.adjust_penalty_factor(@penalty_change_factor)
       end
 
       raise "minimum not found"
@@ -155,7 +155,7 @@ module Autocrew::Solver
     include GSL::MultiMin
 
     def bfgs(function, x)
-      minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS, arity)
+      minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS2, arity)
 
       f = proc do |x, params|
         function.evaluate(*x)
@@ -174,12 +174,25 @@ module Autocrew::Solver
       100.times do
         minimizer.iterate
         status = minimizer.test_gradient(@gradient_tolerance)
-        return if status == GSL::SUCCESS
-        raise "bad status" unless status == GSL::CONTINUE
-        p [minimizer.x, minimizer.f]
+        p [minimizer.f, minimizer.x.map(&:to_f).to_a]
+
+        if status == GSL::SUCCESS
+          return minimizer.f, minimizer.x.map(&:to_f).to_a
+        elsif status != GSL::CONTINUE
+          raise "bad status"
+        end
       end
 
       raise "no minimum found"
+    end
+
+    def parameter_convergence(xs, step)
+      max_value = 0.0
+      xs.each_with_index do |x, i|
+        value = step[i].abs / [x.abs, 1].max
+        max_value = value if value > max_value
+      end
+      return max_value
     end
   end
 end

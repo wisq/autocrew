@@ -9,13 +9,6 @@ module Autocrew
       assert_equal -20.0, coord.y
     end
 
-    test "degrees to radians" do
-      assert_equal 0, Coord.deg2rad(0)
-      assert_equal Math::PI / 4, Coord.deg2rad(45)
-      assert_equal Math::PI, Coord.deg2rad(180)
-      assert_equal Math::PI * 2, Coord.deg2rad(360)
-    end
-
     test "travel north" do
       coord1 = Coord.new(-10, 10)
       coord2 = coord1.travel(0, 1)

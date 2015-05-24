@@ -61,7 +61,7 @@ module Autocrew::Solver
               if x < bound.min
                 penalty = bound.min - x
               elsif x > bound.max
-                penalty = x - minimizer.maxBound
+                penalty = x - bound.max
               end
               total_penalty += penalty_value(penalty) if penalty
             end
@@ -86,7 +86,7 @@ module Autocrew::Solver
 
     def evaluate_gradient(*xs)
       arity_check(xs)
-      output = minimizer.function.evaluate_gradient(*xs)
+      output = @minimizer.function.evaluate_gradient(*xs)
 
       # compute the penalty for out-of-bound parameters
       if @minimizer.bounds.any?
@@ -101,6 +101,8 @@ module Autocrew::Solver
         else
           # penalty methods have penalties only when constraints are violated
           xs.each_with_index do |x, i|
+            next unless bound = @minimizer.bounds[i]
+
             if x < bound.min
               output[i] -= PenaltyFactor * penalty_gradient(bound.min - x)
             elsif x > bound.max
@@ -119,6 +121,8 @@ module Autocrew::Solver
           end
         end
       end
+
+      return output
     end
   end
 end
