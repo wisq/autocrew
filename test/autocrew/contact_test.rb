@@ -32,8 +32,6 @@ module Autocrew
     end
 
     test "TMA with two straight legs" do
-      skip "wait a bit"
-
       contact = Contact.new  # Travelling southeast at 5 knots
       ownship = mock  # 10 nmi north of contact, travelling east at 10 knots
 
@@ -59,7 +57,19 @@ module Autocrew
       contact.observations << Contact::Observation.new(ownship, time5, 202.5)
       ownship.expects(:location).at_least_once.with(time5).returns(Coord.new(10, 0))
 
-      contact.solve
+      stats1 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 135, contact.course
+      assert_in_delta 5, contact.speed
+
+      stats2 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 135, contact.course
+      assert_in_delta 5, contact.speed
+
+      assert stats2.iterations < 5, "second solve should be much faster"
     end
   end
 end

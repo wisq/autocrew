@@ -104,9 +104,9 @@ module Autocrew::Solver
             next unless bound = @minimizer.bounds[i]
 
             if x < bound.min
-              output[i] -= PenaltyFactor * penalty_gradient(bound.min - x)
+              output[i] -= @penalty_factor * penalty_gradient(bound.min - x)
             elsif x > bound.max
-              output[i] += PenaltyFactor * penalty_gradient(x - bound.max)
+              output[i] += @penalty_factor * penalty_gradient(x - bound.max)
             end
           end
         end

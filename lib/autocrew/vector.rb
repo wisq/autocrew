@@ -13,6 +13,10 @@ module Autocrew
       degrees * Math::PI / 180
     end
 
+    def self.rad2deg(degrees)
+      degrees * 180 / Math::PI
+    end
+
     def self.bearing(degrees)
       radians = deg2rad(degrees)
       create(Math.sin(radians), Math.cos(radians))
@@ -40,6 +44,10 @@ module Autocrew
 
     def *(value)
       self.class.new(@vector.mul(value))
+    end
+
+    def bearing
+      Vector.rad2deg(Math.atan2(x, y))
     end
 
     def inspect

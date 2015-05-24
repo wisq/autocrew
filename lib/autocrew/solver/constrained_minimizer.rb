@@ -13,6 +13,22 @@ module Autocrew::Solver
   class ConstrainedMinimizer
     attr_reader :function, :bounds, :constraints, :constraint_enforcement
 
+    class NoMinimumFoundError < StandardError; end
+
+    class Stats
+      attr_reader :iterations, :last_value
+
+      def initialize
+        @iterations = 0
+        @last_value = nil
+      end
+
+      def after_iterate(minimizer)
+        @iterations += 1
+        @last_value = minimizer.f
+      end
+    end
+
     # Initializes the "ConstrainedMinimizer" with the objective function to minimize.
     def initialize(function)
       raise "not a function: #{function.inspect}" unless function.respond_to?(:arity)
@@ -40,7 +56,7 @@ module Autocrew::Solver
       # zero, but since it is unlikely to ever reach zero exactly, it will terminate when the gradient is fractionally less than the
       # gradient tolerance. Larger values allow the process to terminate slightly further from the minimum.
       # If you receive "MinimumNotFoundException" errors, increasing this value may help.
-      @gradient_tolerance = 1e-8
+      @gradient_tolerance = 1e-6
 
       # The parameter convergence tolerance. The minimization process will be terminated if the approximate fractional
       # change in all parameters is no greater than the parameter tolerance. Larger values allow the process to terminate when the
@@ -113,11 +129,11 @@ module Autocrew::Solver
     # while any minimization is ongoing. If you receive "MinimumNotFoundException" errors, try increasing the value of
     # "GradientTolerance".
     #
-    def minimize(guess)
+    def minimize(guess, stats = Stats.new)
       check_arity("dimensions of initial guess", guess.count)
 
       # if no constraints have been added, just minimize the function normally
-      return bfgs(function, guess) if @bounds.all?(&:nil?) && @constraints.empty?
+      return bfgs(function, guess, stats) if @bounds.all?(&:nil?) && @constraints.empty?
 
       penalty_function = PenaltyFunction.new(self, @base_penalty_multiplier)
 
@@ -127,7 +143,7 @@ module Autocrew::Solver
       100.times do |iteration|
         new_value = nil
         begin
-          new_value, new_x = bfgs(penalty_function, x)
+          new_value, new_x = bfgs(penalty_function, x, stats)
         #rescue SomeError
           # sometimes early on (e.g. just the first iteration or two) it will fail to find a minimum
           # but will succeed after the penalty factor ramps up. so we'll ignore those errors at first
@@ -135,11 +151,11 @@ module Autocrew::Solver
         end
 
         if penalty_function.last_penalty.abs <= new_value.abs * @constraint_tolerance
-          return new_value
+          return new_x
         elsif iteration > 0 && parameter_convergence(new_x, x) <= @parameter_tolerance
-          return new_value
+          return new_x
         elsif (new_value - value).abs / [1, value.abs].max <= @value_tolerance
-          return new_value
+          return new_x
         end
 
         value = new_value
@@ -154,8 +170,8 @@ module Autocrew::Solver
 
     include GSL::MultiMin
 
-    def bfgs(function, x)
-      minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS2, arity)
+    def bfgs(function, x, stats)
+      minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS, arity)
 
       f = proc do |x, params|
         function.evaluate(*x)
@@ -169,12 +185,12 @@ module Autocrew::Solver
       fdf_func.set_params([])
 
       vector = GSL::Vector.alloc(*x)
-      minimizer.set(fdf_func, vector, 0.01, 1e-4)
+      minimizer.set(fdf_func, vector, 0.1, 0.1)
 
-      100.times do
+      1000.times do
         minimizer.iterate
+        stats.after_iterate(minimizer)
         status = minimizer.test_gradient(@gradient_tolerance)
-        p [minimizer.f, minimizer.x.map(&:to_f).to_a]
 
         if status == GSL::SUCCESS
           return minimizer.f, minimizer.x.map(&:to_f).to_a
@@ -183,7 +199,7 @@ module Autocrew::Solver
         end
       end
 
-      raise "no minimum found"
+      raise NoMinimumFoundError
     end
 
     def parameter_convergence(xs, step)

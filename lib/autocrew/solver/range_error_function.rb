@@ -30,27 +30,27 @@ module Autocrew::Solver
         bearing_vector = observation.bearing_vector
         obs_vector = unit_point - observer_point
 
-        puts
-        puts "#{index}:"
-        puts "  time           = #{time.inspect}"
-        puts "  velocity       = #{velocity.inspect}"
-        puts "  unit_point     = #{unit_point.inspect}"
-        puts "  observer_point = #{observer_point.inspect}"
-        puts "  bearing_vector = #{bearing_vector.inspect}"
-        puts "  obs_vector     = #{obs_vector.inspect}"
+        #puts
+        #puts "#{index} gradient:"
+        #puts "  time           = #{time.inspect}"
+        #puts "  velocity       = #{velocity.inspect}"
+        #puts "  unit_point     = #{unit_point.inspect}"
+        #puts "  observer_point = #{observer_point.inspect}"
+        #puts "  bearing_vector = #{bearing_vector.inspect}"
+        #puts "  obs_vector     = #{obs_vector.inspect}"
 
         if bearing_vector.dot_product(obs_vector) >= 0  # if the target position is on the correct side of the observer...
           # then the error is the signed distance to the bearing line, which equals the dot product of the cross vector (which is
           # already normalized) and the observation vector
           error = bearing_vector.cross_vector.dot_product(obs_vector)
-          puts "  same side, error = #{error.inspect}"
+          #puts "  same side, error = #{error.inspect}"
           x_deriv     += bearing_vector.y * error
           y_deriv     -= bearing_vector.x * error
           vx_deriv    += bearing_vector.y*speed*time * error
           vy_deriv    -= bearing_vector.x*speed*time * error
           speed_deriv += (bearing_vector.y*normal_velocity.x*time - bearing_vector.x*normal_velocity.y*time) * error;
         else # otherwise, the target position is on the wrong side of the observer...
-          puts "  opposite side"
+          #puts "  opposite side"
           x_deriv     += obs_vector.x
           y_deriv     += obs_vector.y
           vx_deriv    += speed * time * obs_vector.x

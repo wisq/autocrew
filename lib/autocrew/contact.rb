@@ -4,8 +4,6 @@ require 'autocrew/solver/course_normalization_constraint'
 
 module Autocrew
   class Contact
-    attr_reader :observations
-
     class Observation
       attr_reader :observer, :game_time, :bearing
 
@@ -20,38 +18,35 @@ module Autocrew
       end
     end
 
+    attr_reader :observations, :origin, :course, :speed
+
     def initialize
       @observations = []
     end
 
     def solve
-      # Initial guess:
-      init_x = 0.0
-      init_y = 0.0
-      init_course = 135.0
-      init_speed  = 6.0
-
-      point = []
-      point[0] = init_x
-      point[1] = init_y
-      point[4] = init_speed
-
-      # set the initial course (normalized velocity). use the center of the course range if there is one, taking care to handle
-      # ranges that span zero (e.g. 350 to 10). otherwise, use the exact course if it's given. otherwise, use the current course
-      normalVelocity = Vector.bearing(init_course)
-      point[2] = normalVelocity.x
-      point[3] = normalVelocity.y
+      normal_velocity = Vector.bearing(@course.to_f)
+      point = [
+        @x.to_f,
+        @y.to_f,
+        normal_velocity.x,
+        normal_velocity.y,
+        @speed.to_f,
+      ]
 
       minimizer = Solver::ConstrainedMinimizer.new(Solver::RangeErrorFunction.new(self))
 
-      # Enforce non-negative speed:
-      minimizer.set_bounds(2, normalVelocity.x - 0.2, normalVelocity.x + 0.2)
-      minimizer.set_bounds(3, normalVelocity.y - 0.2, normalVelocity.y + 0.2)
-      minimizer.set_bounds(4, 5.0, 7.0)
-      #minimizer.add_constraint(Solver::CourseNormalizationConstraint5D)  # constrain the course vector to be normalized
+      minimizer.set_bounds(4, 0, Float::INFINITY)  # enforce non-negative speed
+      minimizer.add_constraint(Solver::CourseNormalizationConstraint5D)  # constrain the course vector to be normalized
 
-      minimizer.minimize(point)
-      p point
+      stats = Solver::ConstrainedMinimizer::Stats.new
+      pos_x, pos_y, nvel_x, nvel_y, speed = minimizer.minimize(point, stats)
+
+      @origin = Coord.new(pos_x, pos_y)
+      @course = Vector.create(nvel_x, nvel_y).bearing
+      @speed  = speed
+
+      return stats
     end
   end
 end
