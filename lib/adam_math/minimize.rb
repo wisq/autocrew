@@ -1,4 +1,5 @@
 require 'matrix'
+require 'gsl'
 require 'adam_math/ieee754'
 require 'adam_math/math_helpers'
 require 'adam_math/find_root'
@@ -71,13 +72,11 @@ module AdamMath
       brackets
     end
 
-    INV_GOLDEN_RATIO = 0.61803398874989485
-    INV_GR_COMPLEMENT = 1 - INV_GOLDEN_RATIO
+    FMinimizer = GSL::Min::FMinimizer
+    MAX_ITERATIONS = 100
+    TOLERANCE = 1.5e-7
 
-    def self.golden_section(function, bracket, tolerance = IEEE754::SQRT_DOUBLE_PRECISION)
-      raise "no function" unless function
-      raise "tolerance must not be negative" if tolerance < 0
-
+    def self.golden_section(function, bracket, tolerance = TOLERANCE)
       # the golden section search works is analogous to the bisection search for finding roots. it works by repeatedly shrinking the bracket
       # around the minimum until the bracket is very small. we maintain four points x0, x1, x2, and x3 where f(x0) >= f(x1) and
       # f(x3) >= f(x1) or f(x0) >= f(x2) and f(x3) >= f(x2). that is, x0 and x3 represent the edges of the bracket, x1 or x2 is the low
@@ -99,57 +98,10 @@ module AdamMath
       # gives worse performance in the worst case. note that there's no guarantee that the initial bracket will conform to this shape, but
       # we can choose points so that it converges on the right shape
 
-      x0 = bracket.high1
-      x1 = x2 = nil
-      x3 = bracket.high2
-
-      # if the initial middle point is closer to the left side (e.g. |  |    |), choose the new point to closer to the right side
-      if (x3 - bracket.low).abs > (bracket.low - x0).abs
-        x1 = bracket.low                     # place x2 38% of the way from x3-x1 to put it in the right place. if x1 is not in the right
-        x2 = x1 + (x3-x1)*INV_GR_COMPLEMENT  # place, the placement will tend to counteract x1's mispositioning
-      else  # otherwise, the initial point is closer to the right side (or centered), so choose the new point closer to the right
-        x2 = bracket.low;
-        x1 = x2 - (x2-x0)*INV_GR_COMPLEMENT  # place x1 62% of the way from x0 to x2 (38% back from x2)
-      end
-
-      v1 = function.call(x1)
-      v2 = function.call(x2);
-      # in general, we can only expect to get the answer to within a fraction of the center value
-      while (x3-x0).abs > (x1.abs+x2.abs)*tolerance  # while the bracket is still too large compared to the center values...
-        if v2 < v1  # if f(x2) < f(x1) then we have f(x1) > f(x2) and f(x3) >= f(x2), so we can take x1,x2,x3 as the new bracket
-          x = x2*INV_GOLDEN_RATIO + x3*INV_GR_COMPLEMENT
-          x0 = x1
-          x1 = x2
-          v1 = v2
-          x2 = x
-          v2 = function.call(x)
-        else  # otherwise, f(x1) <= f(x2), so we have f(x2) >= f(x1) and f(x0) >= f(x1), so we can take x0,x1,x2 as the new bracket
-          x = x1*INV_GOLDEN_RATIO + x0*INV_GR_COMPLEMENT
-          x3 = x2
-          x2 = x1
-          v2 = v1
-          x1 = x
-          v1 = function.call(x)
-        end
-      end
-
-      # finally, when the bracket has shrunk to be very small, take the lower of v1 and v2 as the minimum
-      if v1 < v2
-        value = v1  # FIXME may need to output this somehow
-        return x1
-      else
-        value = v2  # FIXME may need to output this somehow
-        return x2
-      end
+      return minimize(FMinimizer::GOLDENSECTION, function, bracket, tolerance)
     end
 
-    INV_GOLDEN_RATIO_COMP = 0.38196601125010515  # one minus the inverse of the golden ratio, used by golden section search
-    MAX_ITERATIONS = 100
-
-    def self.brent(function, bracket, tolerance = IEEE754::SQRT_DOUBLE_PRECISION)
-      raise "no function" unless function
-      raise "tolerance must not be negative" if tolerance < 0
-
+    def self.brent(function, bracket, tolerance = TOLERANCE)
       # Brent's method combines the sureness of the golden section search with the parabolic interpolation described in BracketInside().
       # this allows it to converge quickly to the minimum if the local behavior of the function can be roughly approximated by a
       # parabola and to get there eventually if it can't. the difficulty is knowing when to switch between the two approaches. Brent's
@@ -160,96 +112,30 @@ module AdamMath
       # interpolation is working (as the function should be getting smoother and the jumps smaller) and not cycling. using the point from
       # two iterations prior rather than one is a heuristic -- requiring two bad steps in a row before switching to golden section search
 
-      left  = [bracket.high1, bracket.high2].min
-      right = [bracket.high1, bracket.high2].max
+      return minimize(FMinimizer::BRENT, function, bracket, tolerance)
+    end
 
-      minPt = bracket.low
-      secondMinPt = minPt
-      prev2ndMinPt = minPt
-      minVal = function.call(minPt)
-      secondMinVal = minVal
-      prev2ndMinVal = minVal
-      step = 0
-      prevStep = 0
+    def self.minimize(minimizer, function, bracket, tolerance)
+      raise "no function" unless function
+      raise "tolerance must not be negative" if tolerance < 0
+
+      xmin = bracket.low
+      xlow = [bracket.high1, bracket.high2].min
+      xup  = [bracket.high1, bracket.high2].max
+
+      gsl_function = GSL::Function.alloc do |x|
+        v = function.call(x)
+        v = Float::MAX if v.infinite? # no way to catch infinite errors
+        v
+      end
+      solver = FMinimizer.alloc(minimizer)
+      solver.set(gsl_function, xmin, xlow, xup)
 
       MAX_ITERATIONS.times do
-        # we're done when the distance between the brackets is less than or equal to minPt*tolerance*2 and minPt is centered in the bracket
-        mid = 0.5*(left+right)
-        tol1 = tolerance * minPt.abs + (IEEE754::DOUBLE_PRECISION*0.001)  # prevent tol2 from being zero when minPt is zero
-        tol2 = tol1 * 2
-        if (minPt-mid).abs <= tol2 - 0.5*(right-left)
-          value = minVal  # FIXME output?
-          return minPt
-        end
-
-        if prevStep.abs <= tol1  # if the step we'd compare the parabolic interpolation against is too small (near the roundoff error)
-          # we can't meaningfully compare the interpolation step against it, and the interpolation step is unlikely to be smaller than it,
-          # so just do golden section search
-          prevStep = (minPt >= mid ? left : right) - minPt
-          step     = prevStep * INV_GOLDEN_RATIO_COMP
-        else # otherwise, the previous step was substantial, so attempt parabolic interpolation
-          # see BracketInward() for a general description of how the parabolic interpolation works. one difference is that BracketInward()
-          # computes the position of the vertex, but actually the step size to get from the old minimum point to the vertex
-          g = secondMinPt*(prev2ndMinVal-minVal)
-          h = minPt*(secondMinVal-prev2ndMinVal)
-          j = prev2ndMinPt*(minVal-secondMinVal)
-          d = g + h + j; # calculate the denominator
-          # if the denominator is zero, use a point that will force a subdivision step
-          x = d == 0 ? Float::INFINITY : (secondMinPt*g + minPt*h + prev2ndMinPt*j)/(2*d)
-          newStep = x - minPt # subtract minPt from the vertex to get the step size
-
-          # if the step size isn't less than than half the previous step size, or would take us out of bounds...
-          if newStep.abs >= (0.5*prevStep).abs || x <= left || x >= right
-            prevStep = (minPt >= mid ? left : right) - minPt # then use golden section search
-            step     = prevStep * INV_GOLDEN_RATIO_COMP
-          else # otherwise, the interpolation is valid
-            prevStep = step
-            step     = newStep
-            if x-left < tol2 || right-x < tol2
-              step = MathHelpers.with_sign(tol1, mid-minPt)
-            end
-          end
-        end
-
-        # if the step size is greater than the roundoff error, use it. otherwise, use a minimum step size to ensure we're actually getting
-        # somewhere
-        x = minPt + (step.abs >= tol1 ? step : MathHelpers.with_sign(tol1, step))
-        v = function.call(x)
-
-        if v <= minVal # if the new value is less than or equal to the smallest known value...
-          # update the bracket, making the old best point an edge. we have f(left) >= f(minPt) and f(right) >= f(minPt) and f(minPt) >= f(x)
-          if x >= minPt
-            left = minPt  # if the new point is to the right of the old minimum, a new bracket is minPt, x, right
-          else
-            right = minPt  # otherwise, it's to the left, and a new bracket is left, x, minPt
-          end
-
-          # make the minimum point the previous minimum point, the new point the minimum point, etc.
-          prev2ndMinPt  = secondMinPt
-          prev2ndMinVal = secondMinVal
-          secondMinPt   = minPt
-          secondMinVal  = minVal
-          minPt  = x
-          minVal = v
-        else # the new value is greater than the smallest known value...
-          # update the bracket, making the new point an edge. we have f(left) >= f(minPt) and f(right) >= f(minPt) and f(x) >= f(minPt)
-          if x < minPt
-            left = x  # if the new point is to the left of the old minimum, a new bracket is x, minPt, right
-          else
-            right = x  # otherwise, it's to the right, and a new bracket is left, minPt, x
-          end
-
-          if v <= secondMinVal || secondMinPt == minPt  # if the new value is between the minimum value and the second minimum value...
-            prev2ndMinPt  = secondMinPt
-            prev2ndMinVal = secondMinVal  # then make the new point the second minimum value
-            secondMinPt   = x
-            secondMinVal  = v
-          # otherwise, if it's between the second minimum value and the previous second minimum value...
-          elsif v <= prev2ndMinVal || prev2ndMinPt == minPt || prev2ndMinPt == secondMinPt
-            prev2ndMinPt  = x  # make it the previous second minimum value
-            prev2ndMinVal = v
-          end
-        end
+        solver.iterate
+        status = solver.test_interval(tolerance, tolerance)
+        return solver.x_minimum if status == GSL::SUCCESS
+        break unless status == GSL::CONTINUE
       end
 
       raise "minimum not found"

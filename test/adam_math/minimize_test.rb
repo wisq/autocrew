@@ -40,7 +40,9 @@ module AdamMath
       assert_in_delta Math::PI*-2/3-1, Minimize.golden_section(function, b1), ACCURACY
       assert b2 = Minimize.bracket_outward(function, 1, 2)
       assert_in_delta Math::PI*4/3-1, Minimize.golden_section(function, b2), ACCURACY
+    end
 
+    test "one-dimensional with singularity" do
       # try a function with a singularity, for kicks
       nd_function = lambda { |x| Math.cos(x)/(x-1) }
       assert_in_delta 1, Minimize.golden_section(nd_function, MinimumBracket.new(-1, -0.1, 1)), ACCURACY
