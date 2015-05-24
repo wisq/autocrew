@@ -18,7 +18,7 @@ module Autocrew
       end
     end
 
-    attr_reader :observations, :origin, :course, :speed
+    attr_accessor :origin, :course, :speed, :observations
 
     def initialize
       @observations = []
@@ -26,9 +26,10 @@ module Autocrew
 
     def solve
       normal_velocity = Vector.bearing(@course.to_f)
+      origin = @origin || Coord.new(0, 0)
       point = [
-        @x.to_f,
-        @y.to_f,
+        origin.x,
+        origin.y,
         normal_velocity.x,
         normal_velocity.y,
         @speed.to_f,

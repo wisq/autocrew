@@ -172,7 +172,7 @@ module Autocrew::Solver
         penalty_function.adjust_penalty_factor(@penalty_change_factor)
       end
 
-      raise "minimum not found"
+      raise NoMinimumFoundError.new [value, x]
     end
 
     include GSL::MultiMin
