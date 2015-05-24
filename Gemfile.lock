@@ -3,6 +3,9 @@ GEM
   specs:
     gosu (0.8.7.2)
     minitest (5.4.3)
+    narray (0.6.1.1)
+    rb-gsl (1.16.0.4)
+      narray (>= 0.5.9)
 
 PLATFORMS
   ruby
@@ -10,3 +13,4 @@ PLATFORMS
 DEPENDENCIES
   gosu
   minitest
+  rb-gsl
