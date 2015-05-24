@@ -5,7 +5,7 @@ module Autocrew::Solver
   ACCURACY = 1.5e-7
 
   class FirstTest < Minitest::Test
-    test "one-dimensional minimize" do
+    test "one-dimensional" do
       # sin(x+1) + x/2 has local minima at -2/3PI-1, 4/3PI-1, 10/3PI-1, etc.
       function = DifferentiableFunction.new(
         lambda { |x| Math.sin(x+1) + x/2 },
@@ -43,6 +43,34 @@ module Autocrew::Solver
       nd_function = lambda { |x| Math.cos(x)/(x-1) }
       assert_in_delta 1, Minimize.golden_section(nd_function, MinimumBracket.new(-1, -0.1, 1)), ACCURACY
       assert_in_delta 1, Minimize.brent(nd_function, MinimumBracket.new(-1, -0.1, 1)), ACCURACY
+    end
+
+    test "multi-dimensional" do
+      # test using the rosenbrock banana function, which has a long, curved, narrow valley
+      function = RosenbrockBanana.new
+      point = [-1.2, 2]
+      value = Minimize.bfgs(function, point)
+      assert_in_delta 1, point[0], 2.4e-10
+      assert_in_delta 1, point[0], 2.4e-10
+      assert_in_delta 0, value, 6.4e-20
+    end
+  end
+
+  # Implements the Rosenbrock banana function f(x,y) = 100*(y-x^2)^2 + (1-x^2)^2.
+  class RosenbrockBanana #< DifferentiableMDFunction
+    def arity
+      return 2
+    end
+
+    def call(a, b)
+      aa = a*a
+      return 100*(b-aa)*(b-aa) + (1-a)*(1-a)
+    end
+
+    def gradient(a, b)
+      aa = a*a
+      v = 200*(b-aa)
+      return [2*((a-1) - v*a), v]
     end
   end
 end
