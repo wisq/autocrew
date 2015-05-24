@@ -2,12 +2,20 @@ require 'autocrew/solver'
 
 module Autocrew::Solver::ConstraintEnforcement
   class Barrier
+    def barrier_method?
+      true
+    end
+
     def new_penalty_factor(factor, change_factor)
       return factor / change_factor
     end
   end
 
   class NonBarrier
+    def barrier_method?
+      false
+    end
+
     def new_penalty_factor(factor, change_factor)
       return factor * change_factor
     end

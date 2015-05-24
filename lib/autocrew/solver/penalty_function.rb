@@ -13,12 +13,28 @@ module Autocrew::Solver
       @minimizer.arity
     end
 
+    def constraint_enforcement
+      @minimizer.constraint_enforcement
+    end
+
+    def barrier_method?
+      constraint_enforcement.barrier_method?
+    end
+
     def arity_check(xs)
       raise ArgumentError.new("wrong number of arguments (#{xs.count} for #{arity})") unless xs.count == arity
     end
 
-    def adjust_penalty_factor(enforcement, change_factor)
-      @penalty_factor = enforcement.new_penalty_factor(@penalty_factor, change_factor)
+    def adjust_penalty_factor(change_factor)
+      @penalty_factor = constraint_enforcement.new_penalty_factor(@penalty_factor, change_factor)
+    end
+
+    def penalty_value(penalty)
+      constraint_enforcement.penalty_value(penalty)
+    end
+
+    def penalty_gradient(penalty)
+      constraint_enforcement.penalty_gradient(penalty)
     end
 
     def evaluate(*xs)
@@ -43,9 +59,9 @@ module Autocrew::Solver
               next unless bound = @minimizer.bounds[i]
               penalty = nil
               if x < bound.min
-                penalty = bound.min - param
-              elsif param > bound.max
-                penalty = param - minimizer.maxBound
+                penalty = bound.min - x
+              elsif x > bound.max
+                penalty = x - minimizer.maxBound
               end
               total_penalty += penalty_value(penalty) if penalty
             end

@@ -11,6 +11,8 @@ module Autocrew::Solver
   # infinity or zero (depending on the "ConstraintEnforcement" method), and where p(e) is a function that converts the measure
   # of how near the parameters are to violating the constraints into a penalty value.
   class ConstrainedMinimizer
+    attr_reader :function, :bounds, :constraints, :constraint_enforcement
+
     # Initializes the "ConstrainedMinimizer" with the objective function to minimize.
     def initialize(function)
       raise "not a function: #{function.inspect}" unless function.respond_to?(:arity)
@@ -27,7 +29,7 @@ module Autocrew::Solver
       @penalty_change_factor = 100.0
 
       # The method by which the constraints and bounds will be enforced.
-      @constraint_enforcement = ConstraintEnforcement::QuadraticPenalty
+      @constraint_enforcement = ConstraintEnforcement::QuadraticPenalty.new
 
       # The constraint tolerance. The minimization process will be terminated if the fractional contribution of the
       # penalty to the function value is no greater than the constraint tolerance. Larger values will allow the process to terminate with a
@@ -154,9 +156,20 @@ module Autocrew::Solver
 
     def bfgs(function, x)
       minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS, arity)
-      f  = proc { |x, *_| function.evaluate(*x) }
-      df = proc { |x, *_| function.evaluate_gradient(*x) }
-      fdf_function = Function_fdf.alloc(f, df, arity)
+
+      f = proc do |x, params|
+        function.evaluate(*x)
+      end
+      df = proc do |x, params, df|
+        function.evaluate_gradient(*x).each_with_index do |v, i|
+          df[i] = v
+        end
+      end
+      fdf_func = Function_fdf.alloc(f, df, arity)
+      fdf_func.set_params([])
+
+      vector = GSL::Vector.alloc(*x)
+      minimizer.set(fdf_func, vector, 0.01, 1e-4)
 
       100.times do
         minimizer.iterate

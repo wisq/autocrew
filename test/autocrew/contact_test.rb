@@ -11,10 +11,14 @@ module Autocrew
       time1 = GameTime.parse('00:00')
       contact.observations << Contact::Observation.new(ship1, time1, 180.0)
       contact.observations << Contact::Observation.new(ship2, time1,   0.0)
+      ship1.expects(:location).with(time1).returns(Coord.new(0,  10))
+      ship2.expects(:location).with(time1).returns(Coord.new(0, -10))
 
       time2 = GameTime.parse('01:00')
       contact.observations << Contact::Observation.new(ship1, time2, 187.49401888493406)
       contact.observations << Contact::Observation.new(ship2, time2,  32.98121264223171)
+      ship1.expects(:location).with(time2).returns(Coord.new( 5,  10))
+      ship2.expects(:location).with(time2).returns(Coord.new(-5, -10))
 
       contact.solve
     end

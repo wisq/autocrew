@@ -1,13 +1,35 @@
 require 'autocrew/solver/error_function_base'
 
 module Autocrew::Solver
+  class NormalVelocity
+    def self.create(x, y)
+      new(GSL::Vector.alloc(x, y))
+    end
+
+    def initialize(vector)
+      @vector = vector
+    end
+
+    def x
+      @vector[0]
+    end
+
+    def y
+      @vector[1]
+    end
+
+    def *(value)
+      self.class.new(@vector.mul(value))
+    end
+  end
+
   class RangeErrorFunction < ErrorFunctionBase
     def arity
       return 5
     end
 
     def evaluate(pos_x, pos_y, nvel_x, nvel_y, speed)
-      super(Coord.new(pos_x, pos_y), Vector2.new(nvel_x, nvel_y) * speed)
+      super(Autocrew::Coord.new(pos_x, pos_y), NormalVelocity.create(nvel_x, nvel_y) * speed)
     end
 
     def evaluate_gradient(pos_x, pos_y, nvel_x, nvel_y, speed)
