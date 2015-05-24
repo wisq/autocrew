@@ -1,10 +1,12 @@
 require 'minitest_helper'
-require 'autocrew/solver/first'
+require 'adam_math/minimize'
+require 'adam_math/differentiable_function'
+require 'adam_math/minimum_bracket'
 
-module Autocrew::Solver
+module AdamMath
   ACCURACY = 1.5e-7
 
-  class FirstTest < Minitest::Test
+  class MinimizeTest < Minitest::Test
     test "one-dimensional" do
       # sin(x+1) + x/2 has local minima at -2/3PI-1, 4/3PI-1, 10/3PI-1, etc.
       function = DifferentiableFunction.new(
