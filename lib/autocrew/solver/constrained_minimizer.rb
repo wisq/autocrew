@@ -210,7 +210,7 @@ module Autocrew::Solver
     end
 
     def bfgs_result(minimizer)
-      [minimizer.f, minimizer.x.map(&:to_f).to_a]
+      [minimizer.f, minimizer.x.to_a]
     end
 
     def parameter_convergence(xs, step)
