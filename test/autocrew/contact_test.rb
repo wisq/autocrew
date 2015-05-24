@@ -59,7 +59,7 @@ module Autocrew
       assert_in_delta 0, contact.origin.y
       assert_in_delta 135, contact.course
       assert_in_delta 5, contact.speed
-      assert stats2.iterations < 50, "second solve should be much faster, took #{stats2.iterations} tries"
+      assert stats2.iterations < 50, "second solve should be much faster"
     end
 
     test "TMA with two straight legs, far from zero origin" do
@@ -104,7 +104,93 @@ module Autocrew
       assert_in_delta -200, contact.origin.y
       assert_in_delta  135, contact.course
       assert_in_delta    5, contact.speed
-      assert stats2.iterations < 50, "second solve should be much faster, took #{stats2.iterations} tries"
+      assert stats2.iterations < 50, "second solve should be much faster"
     end
+
+    test "TMA with two observers" do
+      contact = Contact.new  # Travelling northeast at 6 knots
+      ship1 = mock  # 10 nmi north of contact, travelling east at 5 knots
+      ship2 = mock  # 10 nmi south of contact, travelling west at 5 knots
+
+      time1 = GameTime.parse('00:00')
+      contact.observations << Contact::Observation.new(ship1, time1, 180.0)
+      contact.observations << Contact::Observation.new(ship2, time1,   0.0)
+      ship1.expects(:location).at_least_once.with(time1).returns(Coord.new(0,  10))
+      ship2.expects(:location).at_least_once.with(time1).returns(Coord.new(0, -10))
+
+      time2 = GameTime.parse('00:30')
+      contact.observations << Contact::Observation.new(ship1, time2, 182.7517379443212)
+      contact.observations << Contact::Observation.new(ship2, time2,  20.86962414851531)
+      ship1.expects(:location).at_least_once.with(time2).returns(Coord.new( 2.5,  10))
+      ship2.expects(:location).at_least_once.with(time2).returns(Coord.new(-2.5, -10))
+
+      time3 = GameTime.parse('01:00')
+      contact.observations << Contact::Observation.new(ship1, time3, 187.49401888493406)
+      contact.observations << Contact::Observation.new(ship2, time3,  32.98121264223171)
+      ship1.expects(:location).at_least_once.with(time3).returns(Coord.new( 5,  10))
+      ship2.expects(:location).at_least_once.with(time3).returns(Coord.new(-5, -10))
+
+      contact.course = 20 # This one needs a little help. :(
+
+      stats1 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 45, contact.course
+      assert_in_delta 6, contact.speed
+      assert stats1.iterations > 50, "first solve is slow"
+
+      stats2 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 45, contact.course
+      assert_in_delta 6, contact.speed
+      assert stats2.iterations < 50, "second solve should be much faster"
+    end
+
+    test "TMA with two straight legs, far offset from 00:00 hours" do
+      contact = Contact.new  # Travelling southeast at 5 knots
+      ownship = mock  # 10 nmi north of contact, travelling east at 10 knots
+
+      time1 = GameTime.parse('20:00')
+      contact.observations << Contact::Observation.new(ownship, time1, 180.0)
+      ownship.expects(:location).at_least_once.with(time1).returns(Coord.new(0, 10))
+
+      time2 = GameTime.parse('20:30')
+      contact.observations << Contact::Observation.new(ownship, time2, 195.3585832227504)
+      ownship.expects(:location).at_least_once.with(time2).returns(Coord.new(5, 10))
+
+      time3 = GameTime.parse('21:00')
+      contact.observations << Contact::Observation.new(ownship, time3, 205.52877936550928)
+      ownship.expects(:location).at_least_once.with(time3).returns(Coord.new(10, 10))
+
+      # Change ownship to travel south at 10 knots:
+
+      time4 = GameTime.parse('21:30')
+      contact.observations << Contact::Observation.new(ownship, time4, 204.5055916764859)
+      ownship.expects(:location).at_least_once.with(time4).returns(Coord.new(10, 5))
+
+      time5 = GameTime.parse('22:00')
+      contact.observations << Contact::Observation.new(ownship, time5, 202.5)
+      ownship.expects(:location).at_least_once.with(time5).returns(Coord.new(10, 0))
+
+      assert_nil contact.origin
+      assert_nil contact.course
+      assert_nil contact.speed
+
+      stats1 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 135, contact.course
+      assert_in_delta 5, contact.speed
+      assert stats1.iterations > 50, "first solve is slow"
+
+      stats2 = contact.solve
+      assert_in_delta 0, contact.origin.x
+      assert_in_delta 0, contact.origin.y
+      assert_in_delta 135, contact.course
+      assert_in_delta 5, contact.speed
+      assert stats2.iterations < 50, "second solve should be much faster"
+    end
+
   end
 end

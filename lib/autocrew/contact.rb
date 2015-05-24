@@ -24,6 +24,10 @@ module Autocrew
       @observations = []
     end
 
+    def origin_time
+      @observations.first.game_time
+    end
+
     def solve
       normal_velocity = Vector.bearing(@course.to_f)
       origin = @origin || Coord.new(0, 0)
@@ -35,6 +39,7 @@ module Autocrew
         @speed.to_f,
       ]
 
+      @observations.sort_by!(&:game_time)
       minimizer = Solver::ConstrainedMinimizer.new(Solver::RangeErrorFunction.new(self))
 
       minimizer.set_bounds(4, 0, Float::INFINITY)  # enforce non-negative speed

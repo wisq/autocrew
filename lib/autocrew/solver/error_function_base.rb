@@ -12,9 +12,10 @@ module Autocrew::Solver
 
     def evaluate(unit_start, velocity)
       sq_error = 0.0
+      time_offset = @unit.origin_time
 
       @unit.observations.each_with_index do |observation, index|
-        time = observation.game_time.hours_f
+        time = (observation.game_time - time_offset).hours_f
         time_velocity = velocity * time
         unit_point = unit_start + time_velocity
 

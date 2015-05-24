@@ -16,13 +16,14 @@ module Autocrew::Solver
 
     def evaluate_gradient(pos_x, pos_y, nvel_x, nvel_y, speed)
       unit_start = Coord.new(pos_x, pos_y)
+      time_offset = @unit.origin_time
       normal_velocity = Vector.create(nvel_x, nvel_y)
       velocity = normal_velocity * speed
 
       x_deriv = y_deriv = vx_deriv = vy_deriv = speed_deriv = 0.0
 
       @unit.observations.each_with_index do |observation, index|
-        time = observation.game_time.hours_f
+        time = (observation.game_time - time_offset).hours_f
         time_velocity = velocity * time
         unit_point = unit_start + time_velocity
 
