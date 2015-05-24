@@ -2,6 +2,8 @@
 
 module Autocrew::Solver
   class PenaltyFunction
+    attr_reader :last_penalty
+
     def initialize(minimizer, penalty_factor)
       @minimizer = minimizer
       @penalty_factor = penalty_factor

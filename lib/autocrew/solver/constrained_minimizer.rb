@@ -1,4 +1,5 @@
-﻿require 'autocrew/solver/constraint_enforcement'
+﻿require 'gsl'
+require 'autocrew/solver/constraint_enforcement'
 require 'autocrew/solver/penalty_function'
 
 module Autocrew::Solver
@@ -147,6 +148,25 @@ module Autocrew::Solver
       end
 
       raise "minimum not found"
+    end
+
+    include GSL::MultiMin
+
+    def bfgs(function, x)
+      minimizer = FdfMinimizer.alloc(FdfMinimizer::VECTOR_BFGS, arity)
+      f  = proc { |x, *_| function.evaluate(*x) }
+      df = proc { |x, *_| function.evaluate_gradient(*x) }
+      fdf_function = Function_fdf.alloc(f, df, arity)
+
+      100.times do
+        minimizer.iterate
+        status = minimizer.test_gradient(@gradient_tolerance)
+        return if status == GSL::SUCCESS
+        raise "bad status" unless status == GSL::CONTINUE
+        p [minimizer.x, minimizer.f]
+      end
+
+      raise "no minimum found"
     end
   end
 end
