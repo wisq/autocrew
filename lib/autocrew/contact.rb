@@ -1,4 +1,6 @@
+require 'autocrew/solver/constrained_minimizer'
 require 'autocrew/solver/range_error_function'
+require 'autocrew/solver/course_normalization_constraint'
 
 module Autocrew
   class Contact
@@ -26,11 +28,11 @@ module Autocrew
         5      # speed
       ]
 
-      minimizer = Autocrew::Solver::ConstrainedMinimizer.new(RangeErrorFunction.new(self))
+      minimizer = Solver::ConstrainedMinimizer.new(Solver::RangeErrorFunction.new(self))
 
       # Enforce non-negative speed:
       minimizer.set_bounds(4, 0, Float::INFINITY)
-      minimizer.add_constraint(NormalizationConstraint.new(5))  # constrain the course vector to be normalized
+      minimizer.add_constraint(Solver::CourseNormalizationConstraint5D)  # constrain the course vector to be normalized
 
       minimizer.minimize(point)
       p point
