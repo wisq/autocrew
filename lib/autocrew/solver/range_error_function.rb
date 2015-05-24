@@ -1,8 +1,8 @@
-require 'maneubo/error_function_base'
+require 'autocrew/solver/error_function_base'
 
-module Maneubo
+module Autocrew::Solver
   class RangeErrorFunction < ErrorFunctionBase
-    def initialize(observer, unit)
+    def initialize(unit)
       @unit = unit
     end
 
