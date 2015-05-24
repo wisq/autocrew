@@ -13,7 +13,13 @@ module Autocrew::Solver
   class ConstrainedMinimizer
     attr_reader :function, :bounds, :constraints, :constraint_enforcement
 
-    class NoMinimumFoundError < StandardError; end
+    class NoMinimumFoundError < StandardError
+      attr_reader :last_result
+
+      def initialize(last_result)
+        @last_result = last_result
+      end
+    end
 
     class Stats
       attr_reader :iterations, :last_value
@@ -144,10 +150,11 @@ module Autocrew::Solver
         new_value = nil
         begin
           new_value, new_x = bfgs(penalty_function, x, stats)
-        #rescue SomeError
+        rescue NoMinimumFoundError => e
           # sometimes early on (e.g. just the first iteration or two) it will fail to find a minimum
           # but will succeed after the penalty factor ramps up. so we'll ignore those errors at first
-          #if(iteration < 10) new_value = penalty_function.evaluate(x)
+          raise if iteration >= 10
+          new_value, new_x = e.last_result
         end
 
         if penalty_function.last_penalty.abs <= new_value.abs * @constraint_tolerance
@@ -193,13 +200,17 @@ module Autocrew::Solver
         status = minimizer.test_gradient(@gradient_tolerance)
 
         if status == GSL::SUCCESS
-          return minimizer.f, minimizer.x.map(&:to_f).to_a
+          return bfgs_result(minimizer)
         elsif status != GSL::CONTINUE
           raise "bad status"
         end
       end
 
-      raise NoMinimumFoundError
+      raise NoMinimumFoundError.new(bfgs_result(minimizer))
+    end
+
+    def bfgs_result(minimizer)
+      [minimizer.f, minimizer.x.map(&:to_f).to_a]
     end
 
     def parameter_convergence(xs, step)
