@@ -1,10 +1,12 @@
 require 'set'
 require 'json'
-require 'glomp/misc'
+require 'glomp/glompable'
 require 'glomp/object_registry'
 
 module Glomp
   class Glomper
+    class CircularReferenceError < StandardError; end
+
     def glomp(object)
       @registry = ObjectRegistry.new
       @objects = {}

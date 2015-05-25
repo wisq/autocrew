@@ -1,4 +1,4 @@
-require 'glomp'
+require 'glomp/glompable'
 
 class GlompTestClass
   include Glomp::Glompable

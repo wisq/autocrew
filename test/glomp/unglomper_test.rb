@@ -1,5 +1,7 @@
 require 'minitest_helper'
 require 'glomp/test_class'
+require 'glomp/glomper'
+require 'glomp/unglomper'
 
 module Glomp
   class UnglomperTest < Minitest::Test
@@ -11,7 +13,7 @@ module Glomp
       hash['objects']['1']['data']['ref'] = {'glomper_reference' => 1}
       json = hash.to_json
 
-      assert_raises CircularReferenceError do
+      assert_raises Unglomper::CircularReferenceError do
         Unglomper.new.unglomp(json)
       end
     end
@@ -26,7 +28,7 @@ module Glomp
       data['ref'] = {'glomper_reference' => 2}
       json = hash.to_json
 
-      assert_raises CircularReferenceError do
+      assert_raises Unglomper::CircularReferenceError do
         Unglomper.new.unglomp(json)
       end
     end

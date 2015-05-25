@@ -1,9 +1,11 @@
 require 'set'
 require 'json'
-require 'glomp/object_registry'
+require 'glomp/glomper'
 
 module Glomp
   class Unglomper
+    class CircularReferenceError < StandardError; end
+
     def unglomp(json)
       @registry = ObjectRegistry.new
       hash = JSON.load(json)

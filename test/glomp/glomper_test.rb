@@ -1,5 +1,7 @@
 require 'minitest_helper'
 require 'glomp/test_class'
+require 'glomp/glomper'
+require 'glomp/unglomper'
 
 module Glomp
   class GlomperTest < Minitest::Test
@@ -24,7 +26,7 @@ module Glomp
       object = GlompTestClass.new(123, nil)
       object.ref = object
 
-      assert_raises CircularReferenceError do
+      assert_raises Glomper::CircularReferenceError do
         Glomper.new.glomp(object)
       end
     end
@@ -34,7 +36,7 @@ module Glomp
       object2 = GlompTestClass.new(345, object1)
       object1.ref = object2
 
-      assert_raises CircularReferenceError do
+      assert_raises Glomper::CircularReferenceError do
         Glomper.new.glomp(object1)
       end
     end
