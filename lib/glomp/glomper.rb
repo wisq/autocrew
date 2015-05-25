@@ -53,8 +53,10 @@ module Glomp
         return {'glomper_reference': make_reference(value)}
       elsif value.kind_of? Hash
         out = {}
-        object.to_hash.each { |k, v| out[k] = dump_value(v) }
+        value.each { |k, v| out[k] = dump_value(v) }
         return out
+      elsif value.kind_of? Array
+        return value.map { |v| dump_value(v) }
       else
         CLASS_WHITELIST.each do |cls|
           return value if value.kind_of?(cls)

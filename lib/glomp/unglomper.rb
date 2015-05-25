@@ -46,6 +46,8 @@ module Glomp
           out[key] = load_data(value)
         end
         return out
+      elsif data.kind_of? Array
+        return data.map { |v| load_data(v) }
       else
         return data
       end
