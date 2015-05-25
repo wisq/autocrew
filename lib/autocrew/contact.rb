@@ -4,7 +4,7 @@ require 'autocrew/solver/course_normalization_constraint'
 
 module Autocrew
   class Contact < JSONable
-    class Observation
+    class Observation < JSONable
       attr_reader :observer, :game_time, :bearing
 
       def initialize(observer, game_time, bearing)
@@ -15,6 +15,22 @@ module Autocrew
 
       def bearing_vector
         Vector.bearing(bearing)
+      end
+
+      def to_hash
+        return {
+          'observer_id': observer.lookup_id,
+          'game_time': game_time,
+          'bearing': bearing,
+        }
+      end
+
+      def self.from_hash(hash, lookup)
+        new(
+          lookup.lookup(OwnShip, hash['observer_id']),
+          GameTime.from_hash(hash['game_time']),
+          hash['bearing'],
+        )
       end
     end
 
@@ -57,18 +73,19 @@ module Autocrew
 
     def to_hash
       return {
-        origin: origin,
-        course: course,
-        speed:  speed,
-        observations: observations
+        'origin': origin,
+        'course': course,
+        'speed':  speed,
+        'observations': observations,
       }
     end
 
-    def self.from_hash(hash)
+    def self.from_hash(hash, lookup)
       contact = new
       contact.origin = Coord.from_hash(hash['origin']) if hash['origin']
       contact.course = hash['course']
       contact.speed  = hash['speed']
+      contact.observations = hash['observations'].map { |o| Observation.from_hash(o, lookup) }
       contact
     end
   end

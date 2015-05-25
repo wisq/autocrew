@@ -10,19 +10,43 @@ module Autocrew
       contact.course = 123
       contact.speed  = 12
 
-      observer = mock
-      contact.observations << Contact::Observation.new(observer, GameTime.parse('00:00'), 123.0)
-      contact.observations << Contact::Observation.new(observer, GameTime.parse('01:00'), 234.0)
+      contact.observations << Contact::Observation.new(observer1 = mock, time1 = GameTime.parse('00:00'), bearing1 = 123.0)
+      contact.observations << Contact::Observation.new(observer2 = mock, time2 = GameTime.parse('01:00'), bearing2 = 234.0)
+      observer1.expects(:lookup_id).returns(345)
+      observer2.expects(:lookup_id).returns(678)
 
       json = contact.to_json
       assert_match /"course":123,/, json
       assert_match /"speed":12,/, json
 
-      contact = Contact.from_json(json)
+      lookup = mock
+      lookup.expects(:lookup).with(OwnShip, 345).returns(new_obs_1 = mock)
+      lookup.expects(:lookup).with(OwnShip, 678).returns(new_obs_2 = mock)
+
+      contact = Contact.from_json(json, lookup)
       assert_equal 45.6, contact.origin.x
       assert_equal 78.9, contact.origin.y
       assert_equal 123, contact.course
       assert_equal 12, contact.speed
+
+      assert_equal 2, contact.observations.count
+
+      assert_equal new_obs_1, contact.observations[0].observer
+      assert_equal time1,     contact.observations[0].game_time
+      assert_equal bearing1,  contact.observations[0].bearing
+
+      assert_equal new_obs_2, contact.observations[1].observer
+      assert_equal time2,     contact.observations[1].game_time
+      assert_equal bearing2,  contact.observations[1].bearing
+    end
+
+    test "can serialize to JSON without solution data" do
+      json = Contact.new.to_json
+      contact = Contact.from_json(json, mock)
+
+      assert_nil contact.origin
+      assert_nil contact.course
+      assert_nil contact.speed
     end
 
     test "TMA should use existing contact data if available" do

@@ -57,5 +57,12 @@ module Autocrew
       assert time1 < time2
       assert time2 > time1
     end
+
+    test "serialize to json" do
+      time1 = GameTime.parse('11d 22:33:44')
+      time2 = GameTime.from_json(time1.to_json)
+      assert_equal time1, time2
+    end
+
   end
 end
