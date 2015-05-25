@@ -32,5 +32,22 @@ module Glomp
         Unglomper.new.unglomp(json)
       end
     end
+
+    test "glomp and unglomp can handle multiple references to the same object" do
+      object2 = GlompTestClass.new(nil, nil)
+      object1 = GlompTestClass.new([object2, object2], object2)
+
+      json = Glomper.new.glomp(object1)
+
+      hash = JSON.load(json)
+      assert_equal 2, hash['objects'].count
+
+      new_object1 = Unglomper.new.unglomp(json)
+      new_object2 = new_object1.ref
+
+      assert_kind_of GlompTestClass, new_object1
+      assert_kind_of GlompTestClass, new_object2
+      assert_equal [new_object2, new_object2], new_object1.value
+    end
   end
 end

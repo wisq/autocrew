@@ -25,6 +25,13 @@ module Glomp
       assert_equal obj3, @registry.lookup(6)
     end
 
+    test "register multiple times" do
+      obj = mock
+      assert_equal 1, @registry.register(obj)
+      assert_equal 1, @registry.register(obj)
+      assert_equal 1, @registry.register(obj, 1)
+    end
+
     test "explicit/implicit ID collision" do
       assert_equal 1, @registry.register(mock, 1)
 
