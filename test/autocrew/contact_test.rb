@@ -1,9 +1,33 @@
 require 'minitest_helper'
 require 'autocrew/contact'
+require 'json'
 
 module Autocrew
   class ContactTest < Minitest::Test
+    test "can serialize to JSON with observations" do
+      contact = Contact.new
+      contact.origin = Coord.new(45.6,78.9)
+      contact.course = 123
+      contact.speed  = 12
+
+      observer = mock
+      contact.observations << Contact::Observation.new(observer, GameTime.parse('00:00'), 123.0)
+      contact.observations << Contact::Observation.new(observer, GameTime.parse('01:00'), 234.0)
+
+      json = contact.to_json
+      assert_match /"course":123,/, json
+      assert_match /"speed":12,/, json
+
+      contact = Contact.from_json(json)
+      assert_equal 45.6, contact.origin.x
+      assert_equal 78.9, contact.origin.y
+      assert_equal 123, contact.course
+      assert_equal 12, contact.speed
+    end
+
     test "TMA should use existing contact data if available" do
+      skip "slow" if ENV['FAST_TESTS'] == '1'
+
       contact = Contact.new
       contact.origin = Coord.new(1,2)
       contact.course = 123
@@ -18,6 +42,8 @@ module Autocrew
     end
 
     test "TMA with two straight legs" do
+      skip "slow" if ENV['FAST_TESTS'] == '1'
+
       contact = Contact.new  # Travelling southeast at 5 knots
       ownship = mock  # 10 nmi north of contact, travelling east at 10 knots
 
@@ -63,6 +89,8 @@ module Autocrew
     end
 
     test "TMA with two straight legs, far from zero origin" do
+      skip "slow" if ENV['FAST_TESTS'] == '1'
+
       contact = Contact.new  # Travelling southeast at 5 knots
       ownship = mock  # 10 nmi north of contact, travelling east at 10 knots
 
@@ -108,6 +136,8 @@ module Autocrew
     end
 
     test "TMA with two observers" do
+      skip "slow" if ENV['FAST_TESTS'] == '1'
+
       contact = Contact.new  # Travelling northeast at 6 knots
       ship1 = mock  # 10 nmi north of contact, travelling east at 5 knots
       ship2 = mock  # 10 nmi south of contact, travelling west at 5 knots
@@ -148,6 +178,8 @@ module Autocrew
     end
 
     test "TMA with two straight legs, far offset from 00:00 hours" do
+      skip "slow" if ENV['FAST_TESTS'] == '1'
+
       contact = Contact.new  # Travelling southeast at 5 knots
       ownship = mock  # 10 nmi north of contact, travelling east at 10 knots
 
@@ -191,6 +223,5 @@ module Autocrew
       assert_in_delta 5, contact.speed
       assert stats2.iterations < 50, "second solve should be much faster"
     end
-
   end
 end

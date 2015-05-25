@@ -1,7 +1,7 @@
 require 'autocrew/vector'
 
 module Autocrew
-  class Coord
+  class Coord < JSONable
     attr_reader :x, :y
 
     def initialize(x, y)
@@ -30,6 +30,14 @@ module Autocrew
       dx = other.x - @x
       dy = other.y - @y
       dx*dx + dy*dy
+    end
+
+    def to_hash
+      {x: @x, y: @y}
+    end
+
+    def self.from_hash(hash)
+      new(hash['x'], hash['y'])
     end
   end
 end

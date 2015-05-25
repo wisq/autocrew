@@ -3,7 +3,7 @@ require 'autocrew/solver/range_error_function'
 require 'autocrew/solver/course_normalization_constraint'
 
 module Autocrew
-  class Contact
+  class Contact < JSONable
     class Observation
       attr_reader :observer, :game_time, :bearing
 
@@ -53,6 +53,23 @@ module Autocrew
       @speed  = speed
 
       return stats
+    end
+
+    def to_hash
+      return {
+        origin: origin,
+        course: course,
+        speed:  speed,
+        observations: observations
+      }
+    end
+
+    def self.from_hash(hash)
+      contact = new
+      contact.origin = Coord.from_hash(hash['origin']) if hash['origin']
+      contact.course = hash['course']
+      contact.speed  = hash['speed']
+      contact
     end
   end
 end

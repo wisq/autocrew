@@ -18,4 +18,3 @@ class Minitest::Test
     end
   end
 end
-
