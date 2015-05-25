@@ -3,8 +3,10 @@ require 'autocrew/solver/range_error_function'
 require 'autocrew/solver/course_normalization_constraint'
 
 module Autocrew
-  class Contact < JSONable
-    class Observation < JSONable
+  class Contact
+    class Observation
+      include Glomp::Glompable
+
       attr_reader :observer, :game_time, :bearing
 
       def initialize(observer, game_time, bearing)
@@ -19,20 +21,22 @@ module Autocrew
 
       def to_hash
         return {
-          'observer_id': observer.lookup_id,
-          'game_time': game_time,
-          'bearing': bearing,
+          'observer'  => observer,
+          'game_time' => game_time,
+          'bearing'   => bearing,
         }
       end
 
-      def self.from_hash(hash, lookup)
+      def self.from_hash(hash)
         new(
-          lookup.lookup(OwnShip, hash['observer_id']),
-          GameTime.from_hash(hash['game_time']),
+          hash['observer'],
+          hash['game_time'],
           hash['bearing'],
         )
       end
     end
+
+    include Glomp::Glompable
 
     attr_accessor :origin, :course, :speed, :observations
 
@@ -80,12 +84,12 @@ module Autocrew
       }
     end
 
-    def self.from_hash(hash, lookup)
+    def self.from_hash(hash)
       contact = new
-      contact.origin = Coord.from_hash(hash['origin']) if hash['origin']
+      contact.origin = hash['origin']
       contact.course = hash['course']
       contact.speed  = hash['speed']
-      contact.observations = hash['observations'].map { |o| Observation.from_hash(o, lookup) }
+      contact.observations = hash['observations']
       contact
     end
   end

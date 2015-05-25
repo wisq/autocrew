@@ -58,9 +58,9 @@ module Autocrew
       assert time2 > time1
     end
 
-    test "serialize to json" do
+    test "glomp and unglomp" do
       time1 = GameTime.parse('11d 22:33:44')
-      time2 = GameTime.from_json(time1.to_json)
+      time2 = Glomp.unglomp(Glomp.glomp(time1))
       assert_equal time1, time2
     end
 

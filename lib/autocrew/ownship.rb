@@ -2,11 +2,21 @@ require 'autocrew/coord'
 
 module Autocrew
   class OwnShip
+    include Glomp::Glompable
+
     attr_reader :movements
 
     def initialize(start_time)
       @start_time = start_time
       @movements = []
+    end
+
+    def to_hash
+      return {} # FIXME
+    end
+
+    def self.from_hash(hash)
+      new(nil) # FIXME
     end
 
     def location(time)

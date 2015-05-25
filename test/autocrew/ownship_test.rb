@@ -15,6 +15,12 @@ module Autocrew
       @ownship.movements << Movement::Straight::Unbounded.new(180, 6)
     end
 
+    test "glomp and unglomp" do
+      # FIXME add movements
+      json = Glomp.glomp(@ownship)
+      ship = Glomp.unglomp(json)
+    end
+
     test "initial location is undefined" do
       assert_nil @ownship.location(GameTime.parse("00:00"))
     end

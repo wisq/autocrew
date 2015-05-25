@@ -1,7 +1,9 @@
 require 'autocrew'
 
 module Autocrew
-  class GameTime < JSONable
+  class GameTime
+    include Glomp::Glompable
+
     def self.parse(text)
       if text =~ /\A(?:(\d+)[d+]\s*)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?\z/
         from_values($1.to_i, $2.to_i, $3.to_i, $4.to_f)

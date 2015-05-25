@@ -1,29 +1,25 @@
 require 'minitest_helper'
 require 'autocrew/contact'
+require 'autocrew/ownship'
 require 'json'
 
 module Autocrew
   class ContactTest < Minitest::Test
-    test "can serialize to JSON with observations" do
+    test "glomp and unglomp" do
       contact = Contact.new
       contact.origin = Coord.new(45.6,78.9)
       contact.course = 123
       contact.speed  = 12
 
-      contact.observations << Contact::Observation.new(observer1 = mock, time1 = GameTime.parse('00:00'), bearing1 = 123.0)
-      contact.observations << Contact::Observation.new(observer2 = mock, time2 = GameTime.parse('01:00'), bearing2 = 234.0)
-      observer1.expects(:lookup_id).returns(345)
-      observer2.expects(:lookup_id).returns(678)
+      observer = OwnShip.new(GameTime.parse("10:30"))
+      contact.observations << Contact::Observation.new(observer, time1 = GameTime.parse('00:00'), bearing1 = 123.0)
+      contact.observations << Contact::Observation.new(observer, time2 = GameTime.parse('01:00'), bearing2 = 234.0)
 
-      json = contact.to_json
+      json = Glomp.glomp(contact)
       assert_match /"course":123,/, json
       assert_match /"speed":12,/, json
 
-      lookup = mock
-      lookup.expects(:lookup).with(OwnShip, 345).returns(new_obs_1 = mock)
-      lookup.expects(:lookup).with(OwnShip, 678).returns(new_obs_2 = mock)
-
-      contact = Contact.from_json(json, lookup)
+      contact = Glomp.unglomp(json)
       assert_equal 45.6, contact.origin.x
       assert_equal 78.9, contact.origin.y
       assert_equal 123, contact.course
@@ -31,18 +27,17 @@ module Autocrew
 
       assert_equal 2, contact.observations.count
 
-      assert_equal new_obs_1, contact.observations[0].observer
+      # FIXME test observer
       assert_equal time1,     contact.observations[0].game_time
       assert_equal bearing1,  contact.observations[0].bearing
 
-      assert_equal new_obs_2, contact.observations[1].observer
+      # FIXME test observer
       assert_equal time2,     contact.observations[1].game_time
       assert_equal bearing2,  contact.observations[1].bearing
     end
 
     test "can serialize to JSON without solution data" do
-      json = Contact.new.to_json
-      contact = Contact.from_json(json, mock)
+      contact = Glomp.unglomp(Glomp.glomp(Contact.new))
 
       assert_nil contact.origin
       assert_nil contact.course

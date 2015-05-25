@@ -1,7 +1,9 @@
 require 'autocrew/vector'
 
 module Autocrew
-  class Coord < JSONable
+  class Coord
+    include Glomp::Glompable
+
     attr_reader :x, :y
 
     def initialize(x, y)

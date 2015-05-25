@@ -1,5 +1,6 @@
 require 'minitest_helper'
 require 'autocrew/coord'
+require 'glomp'
 
 module Autocrew
   class CoordTest < Minitest::Test
@@ -9,12 +10,12 @@ module Autocrew
       assert_equal -20.0, coord.y
     end
 
-    test "serialize to json" do
-      json = Coord.new(12.34, -56.78).to_json
+    test "glomp and unglomp" do
+      json = Glomp.glomp(Coord.new(12.34, -56.78))
       assert_match /:12\.34\D/, json
       assert_match /:-56\.78\D/, json
 
-      coord = Coord.from_json(json)
+      coord = Glomp.unglomp(json)
       assert_equal  12.34, coord.x
       assert_equal -56.78, coord.y
     end
