@@ -17,4 +17,9 @@ class Minitest::Test
       end
     end
   end
+
+  def assert_coord(x, y, coord, delta=0.001)
+    assert_in_delta x, coord.x, delta, "Mismatch (X) between #{[x,y]} and #{[coord.x,coord.y]}"
+    assert_in_delta y, coord.y, delta, "Mismatch (Y) between #{[x,y]} and #{[coord.x,coord.y]}"
+  end
 end
