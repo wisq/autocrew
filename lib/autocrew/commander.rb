@@ -5,8 +5,7 @@ module Autocrew
     class ExtraWordsError < StandardError; end
     class ValueError < StandardError; end
 
-    def initialize(state, text)
-      @state = state
+    def initialize(text)
       @words = text.split(/\s+/)
       @time = nil
     end
@@ -20,12 +19,12 @@ module Autocrew
         return parse
       end
 
-      if word =~ /[a-z][0-9]+/
+      if word =~ /^[a-z][0-9]+$/
         command = parse_contact(word)
       end
 
       raise ExtraWordsError unless @words.empty?
-      return command.execute(@state)
+      return command
     end
 
     def parse_contact(id)

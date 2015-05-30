@@ -52,7 +52,7 @@ module Autocrew
     end
 
     def parse(text)
-      Commander.new(@world, text).parse
+      Commander.new(text).parse.execute(@world)
     end
   end
 end
