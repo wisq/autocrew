@@ -51,6 +51,20 @@ module Autocrew
       assert_equal 0, @s1.observations.count
     end
 
+    test "timeless observation uses stopwatch time" do
+      @world.stopwatch = stopwatch = mock
+
+      stopwatch.expects(:now).returns(time1 = GameTime.parse("23:00"))
+      parse("s1 bearing 234")
+      assert_equal 1, @s1.observations.count
+      assert_equal time1, @s1.observations.first.game_time
+
+      stopwatch.expects(:now).returns(time2 = GameTime.parse("23:10"))
+      parse("s1 bearing 240")
+      assert_equal 2, @s1.observations.count
+      assert_equal time2, @s1.observations.last.game_time
+    end
+
     def parse(text)
       Commander.new(text).parse.execute(@world)
     end

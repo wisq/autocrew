@@ -44,7 +44,7 @@ module Autocrew
 
       def execute(state)
         contact = state.contacts[@id] || Contact.new
-        contact.add_observation(state.ownship, @time, @bearing)
+        contact.add_observation(state.ownship, @time || state.stopwatch.now, @bearing)
         state.contacts[@id] ||= contact
       end
     end
