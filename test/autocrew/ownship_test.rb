@@ -14,9 +14,11 @@ module Autocrew
     end
 
     test "glomp and unglomp" do
-      # FIXME add movements
       json = Glomp.glomp(@ownship)
-      ship = Glomp.unglomp(json)
+      ownship = Glomp.unglomp(json)
+
+      assert_equal 3, ownship.events.count
+      assert_equal :starboard, ownship.events[1].direction
     end
 
     test "initial location is undefined" do

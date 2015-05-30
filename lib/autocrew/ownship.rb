@@ -4,8 +4,11 @@ module Autocrew
   class Ownship
     include Glomp::Glompable
 
-    def initialize
-      @events = []
+    attr_reader :events
+
+    def initialize(events = [])
+      @events = events
+      @events.sort_by!(&:game_time)
     end
 
     def add_event(event)
@@ -14,11 +17,13 @@ module Autocrew
     end
 
     def to_hash
-      return {} # FIXME
+      return {
+        'events' => @events,
+      }
     end
 
     def self.from_hash(hash)
-      new # FIXME
+      new(hash['events'])
     end
 
     def distance_between(start_time, stop_time)
