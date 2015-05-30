@@ -1,7 +1,7 @@
 require 'autocrew/coord'
 
 module Autocrew
-  class OwnShip
+  class Ownship
     include Glomp::Glompable
 
     def initialize

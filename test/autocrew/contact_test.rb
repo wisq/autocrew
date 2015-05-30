@@ -11,7 +11,7 @@ module Autocrew
       contact.course = 123
       contact.speed  = 12
 
-      observer = OwnShip.new
+      observer = Ownship.new
       contact.observations << Contact::Observation.new(observer, time1 = GameTime.parse('00:00'), bearing1 = 123.0)
       contact.observations << Contact::Observation.new(observer, time2 = GameTime.parse('01:00'), bearing2 = 234.0)
 

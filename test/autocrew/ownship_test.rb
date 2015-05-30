@@ -3,9 +3,9 @@ require 'autocrew/ownship'
 require 'autocrew/event'
 
 module Autocrew
-  class OwnShipTest < Minitest::Test
+  class OwnshipTest < Minitest::Test
     def setup
-      @ownship = OwnShip.new
+      @ownship = Ownship.new
 
       @start = GameTime.parse("10:30")
       @ownship.add_event Event::Initial.new(@start, 90, 6)
