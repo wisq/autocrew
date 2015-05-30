@@ -5,41 +5,49 @@ module Autocrew
     class ExtraWordsError < StandardError; end
     class ValueError < StandardError; end
 
-    def parse(state, text)
-      words = text.split(/\s+/)
+    def initialize(state, text)
+      @state = state
+      @words = text.split(/\s+/)
+      @time = nil
+    end
 
-      time = nil
-      until words.empty?
-        word = words.shift
+    def parse
+      word = @words.shift
 
-        if word == "at"
-          time = GameTime.parse(words.shift)
-        elsif word =~ /[a-z][0-9]+/
-          return parse_contact(state, time, word, words)
-        end
+      # Modifiers:
+      if word == "at"
+        @time = GameTime.parse(@words.shift)
+        return parse
+      end
+
+      if word =~ /[a-z][0-9]+/
+        command = parse_contact(word)
+      end
+
+      raise ExtraWordsError unless @words.empty?
+      return command.execute(@state)
+    end
+
+    def parse_contact(id)
+      word = @words.shift
+      if word == "bearing"
+        return ContactBearing.new(id, @time, @words.shift)
       end
     end
 
-    def parse_contact(state, time, id, words)
-      contact = state.contacts[id] || Contact.new
-
-      done = false
-      until words.empty? || done
-        word = words.shift
-
-        if word == "bearing"
-          raise ExtraWordsError unless words.count == 1
-          contact_bearing(contact, state.ownship, time, words.first)
-          break
-        end
+    class ContactBearing
+      def initialize(id, time, bearing)
+        @id = id
+        @time = time
+        raise ValueError unless bearing =~ /^[0-9]+(?:\.[0-9]+)?$/
+        @bearing = bearing.to_f
       end
 
-      state.contacts[id] ||= contact
-    end
-
-    def contact_bearing(contact, ownship, time, bearing)
-      raise ValueError unless bearing =~ /^[0-9]+(?:\.[0-9]+)?$/
-      contact.add_observation(ownship, time, bearing.to_f)
+      def execute(state)
+        contact = state.contacts[@id] || Contact.new
+        contact.add_observation(state.ownship, @time, @bearing)
+        state.contacts[@id] ||= contact
+      end
     end
   end
 end
