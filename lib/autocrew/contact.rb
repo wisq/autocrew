@@ -48,6 +48,10 @@ module Autocrew
       @observations.first.game_time
     end
 
+    def add_observation(observer, game_time, bearing)
+      @observations << Observation.new(observer, game_time, bearing)
+    end
+
     def solve
       normal_velocity = Vector.bearing(@course.to_f)
       origin = @origin || Coord.new(0, 0)
