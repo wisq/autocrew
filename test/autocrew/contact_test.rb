@@ -36,7 +36,7 @@ module Autocrew
       assert_equal bearing2,  contact.observations[1].bearing
     end
 
-    test "can serialize to JSON without solution data" do
+    test "can glomp without solution data" do
       contact = Glomp.unglomp(Glomp.glomp(Contact.new))
 
       assert_nil contact.origin
