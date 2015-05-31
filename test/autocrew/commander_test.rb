@@ -7,6 +7,7 @@ module Autocrew
       @world = WorldState.new
       @world.ownship = @ownship = Ownship.new
       @world.contacts['s1'] = @s1 = Contact.new
+      @commander = Commander.new
     end
 
     test "apply new bearing report" do
@@ -32,11 +33,10 @@ module Autocrew
       assert_equal 240, s2.observations.last.bearing
     end
 
-    test "garbage at end of command" do
-      assert_raises(Commander::ExtraWordsError) do
-        command("at 11:00 s1 bearing 234 garbage words")
+    test "unknown command" do
+      assert_raises(Commander::UnknownCommandError) do
+        command("foooooo")
       end
-      assert_equal 0, @s1.observations.count
     end
 
     test "invalid bearing string" do
@@ -78,11 +78,15 @@ module Autocrew
     end
 
     test "restart" do
-      assert_kind_of Commander::RestartCommand, Commander.parse("restart")
+      assert_kind_of Commander::RestartCommand, parse("restart")
+    end
+
+    def parse(text)
+      @commander.parse(text)
     end
 
     def command(text)
-      Commander.parse(text).execute(@world)
+      parse(text).execute(@world)
     end
   end
 end

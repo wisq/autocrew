@@ -3,51 +3,88 @@ require 'autocrew'
 module Autocrew
   class Commander
     class ExtraWordsError < StandardError; end
+    class UnknownCommandError < StandardError; end
     class ValueError < StandardError; end
 
-    def self.parse(text)
-      new(text).parse
+    attr_reader :params
+
+    def initialize(parent = nil, params = {})
+      if parent
+        @params = parent.params.merge(params)
+      else
+        @params = params
+      end
     end
 
-    def initialize(text)
-      @words = text.split(/\s+/)
-      @time = nil
+    def apply(params)
+      self.class.new(self, params)
     end
 
-    def parse
-      word = @words.shift
+    def game_time
+      return params[:game_time]
+    end
 
-      # Modifiers:
-      if word == "at"
-        @time = GameTime.parse(@words.shift)
-        return parse
+    def commands
+      return {
+        'at' => AtCommand,
+        'sync' => SyncCommand,
+        'restart' => RestartCommand,
+        :match => {
+          /^[a-z][0-9]+$/ => ContactCommander,
+        }
+      }
+    end
+
+    def parse(text, command_list = commands)
+      command, rest = text.split(/\s+/, 2)
+
+      if cls = command_list[command]
+        return cls.parse(self, command, rest)
       end
 
-      if word =~ /^[a-z][0-9]+$/
-        command = parse_contact(word)
-      elsif word == "sync"
-        command = SyncCommand.new(GameTime.parse(@words.shift))
-      elsif word == "restart"
-        command = RestartCommand.new
+      command_list[:match].each do |regex, cls|
+        if command =~ regex
+          return cls.parse(self, command, rest)
+        end
       end
 
-      raise ExtraWordsError unless @words.empty?
-      return command
+      raise UnknownCommandError
     end
 
-    def parse_contact(id)
-      word = @words.shift
-      if word == "bearing"
-        return ContactBearingCommand.new(id, @time, @words.shift)
+    class AtCommand
+      def self.parse(cmdr, _, text)
+        time_str, rest = text.split(/\s+/, 2)
+        time = GameTime.parse(time_str)
+        return cmdr.apply(game_time: time).parse(rest)
+      end
+    end
+
+    class ContactCommander < Commander
+      def commands
+        return {
+          'bearing' => ContactBearingCommand,
+        }
+      end
+
+      def contact_id
+        return params[:contact_id]
+      end
+
+      def self.parse(cmdr, id, text)
+        return new(cmdr, contact_id: id).parse(text)
       end
     end
 
     class ContactBearingCommand
+      def self.parse(cmdr, _, bearing)
+        raise ValueError unless bearing =~ /^[0-9]+(?:\.[0-9]+)?$/
+        return new(cmdr.contact_id, cmdr.game_time, bearing.to_f)
+      end
+
       def initialize(id, time, bearing)
         @id = id
         @time = time
-        raise ValueError unless bearing =~ /^[0-9]+(?:\.[0-9]+)?$/
-        @bearing = bearing.to_f
+        @bearing = bearing
       end
 
       def execute(state)
@@ -58,6 +95,10 @@ module Autocrew
     end
 
     class SyncCommand
+      def self.parse(_, _, time_str)
+        return new(GameTime.parse(time_str))
+      end
+
       def initialize(time)
         @time = time
       end
@@ -68,6 +109,10 @@ module Autocrew
     end
 
     class RestartCommand
+      def self.parse(*_)
+        return new
+      end
+
       def execute(state)
         state.save('restart')
         ENV['AUTOCREW_LOAD'] = 'restart'
