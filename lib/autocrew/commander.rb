@@ -21,6 +21,8 @@ module Autocrew
 
       if word =~ /^[a-z][0-9]+$/
         command = parse_contact(word)
+      elsif word == "sync"
+        command = SyncCommand.new(GameTime.parse(@words.shift))
       end
 
       raise ExtraWordsError unless @words.empty?
@@ -30,11 +32,11 @@ module Autocrew
     def parse_contact(id)
       word = @words.shift
       if word == "bearing"
-        return ContactBearing.new(id, @time, @words.shift)
+        return ContactBearingCommand.new(id, @time, @words.shift)
       end
     end
 
-    class ContactBearing
+    class ContactBearingCommand
       def initialize(id, time, bearing)
         @id = id
         @time = time
@@ -46,6 +48,16 @@ module Autocrew
         contact = state.contacts[@id] || Contact.new
         contact.add_observation(state.ownship, @time || state.stopwatch.now, @bearing)
         state.contacts[@id] ||= contact
+      end
+    end
+
+    class SyncCommand
+      def initialize(time)
+        @time = time
+      end
+
+      def execute(state)
+        state.stopwatch = Stopwatch.new(@time)
       end
     end
   end
