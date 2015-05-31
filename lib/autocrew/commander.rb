@@ -5,6 +5,10 @@ module Autocrew
     class ExtraWordsError < StandardError; end
     class ValueError < StandardError; end
 
+    def self.parse(text)
+      new(text).parse
+    end
+
     def initialize(text)
       @words = text.split(/\s+/)
       @time = nil
@@ -23,6 +27,8 @@ module Autocrew
         command = parse_contact(word)
       elsif word == "sync"
         command = SyncCommand.new(GameTime.parse(@words.shift))
+      elsif word == "restart"
+        command = RestartCommand.new
       end
 
       raise ExtraWordsError unless @words.empty?
@@ -58,6 +64,14 @@ module Autocrew
 
       def execute(state)
         state.stopwatch = Stopwatch.new(@time)
+      end
+    end
+
+    class RestartCommand
+      def execute(state)
+        state.save('restart')
+        ENV['AUTOCREW_LOAD'] = 'restart'
+        exec($0)
       end
     end
   end

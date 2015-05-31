@@ -77,8 +77,12 @@ module Autocrew
       assert_in_delta GameTime.parse("22:30").to_f, @world.stopwatch.now.to_f
     end
 
+    test "restart" do
+      assert_kind_of Commander::RestartCommand, Commander.parse("restart")
+    end
+
     def command(text)
-      Commander.new(text).parse.execute(@world)
+      Commander.parse(text).execute(@world)
     end
   end
 end
