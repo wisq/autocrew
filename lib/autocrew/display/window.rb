@@ -1,5 +1,5 @@
 require 'gosu'
-require 'autocrew/display'
+require 'autocrew/display/frame'
 
 module Autocrew
   module Display
@@ -9,21 +9,24 @@ module Autocrew
         self.caption = "Autocrew"
 
         @state = state
-        @last_redraw = Time.at(0)
+        @next_redraw = Time.now
         @fps = 0
       end
 
       def needs_redraw?
-        return (Time.now - @last_redraw) >= 0.5
-      end
-
-      def update
-        return unless needs_redraw?
+        return Time.now > @next_redraw
       end
 
       def draw
-        @last_redraw = Time.now
-        super
+        frame = Frame.new(@state, self.width, self.height)
+        image = frame.draw(self)
+
+        @next_redraw = Time.now + 0.5
+        return super
+      rescue Exception => e
+        puts "Error in draw: #{e}"
+        puts "  (at #{e.backtrace.first})"
+        @next_redraw = Time.now + 3.0
       end
     end
   end

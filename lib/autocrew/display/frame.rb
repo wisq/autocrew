@@ -1,4 +1,5 @@
 require 'gosu'
+require 'texplay'
 require 'autocrew/display'
 
 module Autocrew
@@ -39,6 +40,35 @@ module Autocrew
           center_x - (desired_width / 2),
           center_y - (desired_height / 2),
         )
+      end
+
+      def position(coord)
+        offset = (@coord - @origin) * @scale_factor
+        return [offset.x, offset.y]
+      end
+
+      def draw_background
+        width  = @width
+        height = @height
+        @image.paint do
+          rect 0, 0, width, height, :color => [0.70, 0.86, 0.94, 1.0], :fill => true
+        end
+      end
+
+      def draw_ownship
+        return unless @state.stopwatch && @state.ownship
+        now = @state.stopwatch.now
+        @image.paint do
+          location = @state.ownship.location(now)
+          circle(*position(coord), 20)
+        end
+      end
+
+      def draw(window)
+        @image = Gosu::Image.new(TexPlay::EmptyImageStub.new(@width, @height))
+        draw_background
+        draw_ownship
+        @image.draw(0, 0, 0)
       end
     end
   end
