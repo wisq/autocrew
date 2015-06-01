@@ -3,6 +3,7 @@ require 'readline'
 
 require 'autocrew/world_state'
 require 'autocrew/commander'
+require 'autocrew/display/window'
 
 module Autocrew
   class Main
@@ -15,18 +16,10 @@ module Autocrew
     end
 
     def run
-      threads = {}
-      threads['solver'] ||= Thread.new { solver_thread }
-      threads['main']   ||= Thread.new { main_thread }
-      by_thread = threads.invert
-
-      until threads.empty?
-        thread = ThreadsWait.new(threads.values).next_wait
-        name = by_thread[thread]
-        puts "#{name.capitalize} thread has died."
-        exit(0) if name == 'main'
-        threads.delete(name)
-      end
+      @window = Display::Window.new(@state)
+      Thread.new { solver_thread }
+      Thread.new { main_thread }
+      @window.show
     end
 
     def solver_thread
@@ -42,6 +35,11 @@ module Autocrew
 
         sleep(2)
       end
+    rescue Exception => e
+      puts "Error in solver thread: #{e}"
+      puts "  (at #{e.backtrace.first})"
+    ensure
+      @window.close
     end
 
     def main_thread
@@ -61,6 +59,11 @@ module Autocrew
         system("stty", stty_save)
         exit
       end
+    rescue Exception => e
+      puts "Error in main thread: #{e}"
+      puts "  (at #{e.backtrace.first})"
+    ensure
+      @window.close
     end
   end
 end
