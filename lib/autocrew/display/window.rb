@@ -1,5 +1,5 @@
 require 'gosu'
-require 'autocrew'
+require 'autocrew/display'
 
 module Autocrew
   module Display
