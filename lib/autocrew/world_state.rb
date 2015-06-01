@@ -6,7 +6,7 @@ module Autocrew
   class WorldState
     include Glomp::Glompable
 
-    attr_accessor :ownship, :contacts, :stopwatch
+    attr_accessor :ownship, :contacts, :stopwatch, :focus
 
     def initialize
       @contacts = {}
@@ -46,6 +46,25 @@ module Autocrew
 
     def self.save_directory
       ENV['AUTOCREW_HOME'] || File.join(ENV['HOME'], '.autocrew')
+    end
+
+    def focused_contact
+      return @contacts[@focus]
+    end
+
+    def display_points
+      return [] unless @stopwatch && @ownship
+
+      now = @stopwatch.now
+      hour_ago = now - GameTime.parse("01:00")
+      times = [hour_ago, now]
+
+      points = times.map { |time| @ownship.location(time) }
+      if contact = focused_contact
+        points += times.map { |time| contact.location(time) }
+      end
+
+      return points
     end
   end
 end
