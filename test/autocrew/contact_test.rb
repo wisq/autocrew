@@ -5,9 +5,26 @@ require 'json'
 
 module Autocrew
   class ContactTest < Minitest::Test
+    test "location" do
+      contact = Contact.new
+      contact.origin = Coord.new(45.6,78.9)
+      contact.origin_time = GameTime.parse("01:00")
+      contact.course = 123
+      contact.speed  = 12
+
+      assert_coord 50.63202340767255, 75.63216578990985, contact.location(GameTime.parse("01:30"))
+      assert_coord 55.66404681534509, 72.36433157981968, contact.location(GameTime.parse("02:00"))
+
+      contact.course = 234
+
+      assert_coord 40.745898033750315, 75.37328848624517, contact.location(GameTime.parse("01:30"))
+      assert_coord 35.891796067500636, 71.84657697249033, contact.location(GameTime.parse("02:00"))
+    end
+
     test "glomp and unglomp" do
       contact = Contact.new
       contact.origin = Coord.new(45.6,78.9)
+      contact.origin_time = GameTime.new('03:45')
       contact.course = 123
       contact.speed  = 12
 
@@ -22,16 +39,17 @@ module Autocrew
       contact = Glomp.unglomp(json)
       assert_equal 45.6, contact.origin.x
       assert_equal 78.9, contact.origin.y
+      assert_equal GameTime.new('03:45'), contact.origin_time
       assert_equal 123, contact.course
       assert_equal 12, contact.speed
 
       assert_equal 2, contact.observations.count
 
-      # FIXME test observer
+      # FIXME test observer (needs something unique about it)
       assert_equal time1,     contact.observations[0].game_time
       assert_equal bearing1,  contact.observations[0].bearing
 
-      # FIXME test observer
+      # FIXME test observer (needs something unique about it)
       assert_equal time2,     contact.observations[1].game_time
       assert_equal bearing2,  contact.observations[1].bearing
     end
@@ -40,6 +58,7 @@ module Autocrew
       contact = Glomp.unglomp(Glomp.glomp(Contact.new))
 
       assert_nil contact.origin
+      assert_nil contact.origin_time
       assert_nil contact.course
       assert_nil contact.speed
     end
@@ -51,6 +70,7 @@ module Autocrew
       contact.origin = Coord.new(1,2)
       contact.course = 123
       contact.speed  = 12
+      contact.observations << Contact::Observation.new(mock, mock, mock) # stub
 
       Solver::ConstrainedMinimizer.any_instance.expects(:minimize).with([
         1.0, 2.0, # origin
@@ -105,6 +125,8 @@ module Autocrew
       assert_in_delta 135, contact.course
       assert_in_delta 5, contact.speed
       assert stats2.iterations < 50, "second solve should be much faster"
+
+      assert_equal time1, contact.origin_time
     end
 
     test "TMA with two straight legs, far from zero origin" do

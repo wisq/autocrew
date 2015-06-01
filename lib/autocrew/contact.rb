@@ -38,14 +38,15 @@ module Autocrew
 
     include Glomp::Glompable
 
-    attr_accessor :origin, :course, :speed, :observations
+    attr_accessor :origin, :origin_time, :course, :speed, :observations
 
     def initialize
       @observations = []
     end
 
-    def origin_time
-      @observations.first.game_time
+    def location(time)
+      return nil unless @origin && @origin_time && @course
+      return @origin.travel(@course, (time - @origin_time).hours_f * @speed)
     end
 
     def add_observation(observer, game_time, bearing)
@@ -64,6 +65,8 @@ module Autocrew
       ]
 
       @observations.sort_by!(&:game_time)
+      @origin_time = @observations.first.game_time
+
       minimizer = Solver::ConstrainedMinimizer.new(Solver::RangeErrorFunction.new(self))
 
       minimizer.set_bounds(4, 0, Float::INFINITY)  # enforce non-negative speed
@@ -82,6 +85,7 @@ module Autocrew
     def to_hash
       return {
         'origin': origin,
+        'origin_time': origin_time,
         'course': course,
         'speed':  speed,
         'observations': observations,
@@ -91,6 +95,7 @@ module Autocrew
     def self.from_hash(hash)
       contact = new
       contact.origin = hash['origin']
+      contact.origin_time = hash['origin_time']
       contact.course = hash['course']
       contact.speed  = hash['speed']
       contact.observations = hash['observations']
