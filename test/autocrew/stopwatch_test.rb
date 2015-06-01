@@ -19,5 +19,18 @@ module Autocrew
       assert_equal 5, now.minute
       assert_in_delta 7.5, now.second
     end
+
+    test "glomp and unglomp" do
+      stopwatch = Stopwatch.new(game_time = GameTime.parse("11:30"), real_time = Time.now)
+      now = stopwatch.now
+
+      json = Glomp.glomp(stopwatch)
+      stopwatch = Glomp.unglomp(json)
+
+      assert_equal game_time, stopwatch.game_time
+      assert_equal real_time.to_f, stopwatch.real_time.to_f
+      assert_kind_of Time, stopwatch.real_time
+      assert_in_delta now.to_f, stopwatch.now.to_f
+    end
   end
 end

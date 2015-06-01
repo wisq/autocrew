@@ -16,7 +16,7 @@ module Autocrew
       state = WorldState.new
       state.ownship = ownship
       state.contacts = {'s1' => contact1, 's2' => contact2}
-      # FIXME test stopwatch
+      state.stopwatch = Stopwatch.new(game_time = GameTime.parse("00:30"), real_time = Time.now)
 
       json = Glomp.glomp(state)
       state = Glomp.unglomp(json)
@@ -25,6 +25,8 @@ module Autocrew
       assert_equal 2, state.contacts.count
       assert_equal 12.3, state.contacts['s1'].origin.x
       assert_equal 78.9, state.contacts['s2'].origin.x
+      assert_equal game_time, state.stopwatch.game_time
+      assert_equal real_time.to_f, state.stopwatch.real_time.to_f
     end
   end
 end
