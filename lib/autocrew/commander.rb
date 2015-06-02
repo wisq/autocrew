@@ -33,6 +33,7 @@ module Autocrew
         'sync' => SyncCommand,
         'restart' => RestartCommand,
         'ownship' => OwnshipCommand,
+        'debug' => DebugCommand,
         :match => {
           /^[a-z][0-9]+$/ => ContactCommander,
         }
@@ -40,7 +41,11 @@ module Autocrew
     end
 
     def parse(text, command_list = commands)
-      command, rest = text.split(/\s+/, 2)
+      if text
+        command, rest = text.split(/\s+/, 2)
+      else
+        command = :empty
+      end
 
       if cls = command_list[command]
         return cls.parse(self, command, rest)
@@ -67,6 +72,8 @@ module Autocrew
       def commands
         return {
           'bearing' => ContactBearingCommand,
+          'focus' => ContactFocusCommand,
+          :empty => ContactFocusCommand,
         }
       end
 
@@ -95,6 +102,21 @@ module Autocrew
         contact = state.contacts[@id] || Contact.new
         contact.add_observation(state.ownship, @time || state.stopwatch.now, @bearing)
         state.contacts[@id] ||= contact
+      end
+    end
+
+    class ContactFocusCommand
+      def self.parse(cmdr, _, _)
+        return new(cmdr.contact_id)
+      end
+
+      def initialize(id)
+        @id = id
+      end
+
+      def execute(state)
+        raise "Cannot focus on #{@id.inspect}: Contact not found." unless state.contacts.has_key?(@id)
+        state.focus = @id
       end
     end
 
@@ -151,6 +173,20 @@ module Autocrew
         state.save('restart')
         ENV['AUTOCREW_LOAD'] = 'restart'
         exec($0)
+      end
+    end
+
+    class DebugCommand
+      def self.parse(_, _, code)
+        return new(code)
+      end
+
+      def initialize(code)
+        @code = code
+      end
+
+      def execute(state)
+        eval(@code)
       end
     end
   end

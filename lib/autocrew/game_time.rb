@@ -80,6 +80,10 @@ module Autocrew
       return {'timestamp': @timestamp}
     end
 
+    def floor(step = 1.0)
+      return GameTime.new(to_f - (to_f % step.to_f))
+    end
+
     def self.from_hash(hash)
       new(hash['timestamp'])
     end

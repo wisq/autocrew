@@ -64,13 +64,12 @@ module Autocrew
     end
 
     test "TMA should use existing contact data if available" do
-      skip "slow" if ENV['FAST_TESTS'] == '1'
-
       contact = Contact.new
       contact.origin = Coord.new(1,2)
       contact.course = 123
       contact.speed  = 12
-      contact.observations << Contact::Observation.new(mock, mock, mock) # stub
+      mock_observation = stub(:game_time => stub)
+      contact.observations = [mock_observation] * 2
 
       Solver::ConstrainedMinimizer.any_instance.expects(:minimize).with([
         1.0, 2.0, # origin

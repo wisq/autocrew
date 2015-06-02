@@ -49,11 +49,19 @@ module Autocrew
       return @origin.travel(@course, (time - @origin_time).hours_f * @speed)
     end
 
+    def initial_time
+      return nil if @observations.empty?
+      @observations.first.game_time
+    end
+
     def add_observation(observer, game_time, bearing)
       @observations << Observation.new(observer, game_time, bearing)
+      @observations.sort_by!(&:game_time)
     end
 
     def solve
+      return unless @observations.count >= 2
+
       normal_velocity = Vector.bearing(@course.to_f)
       origin = @origin || Coord.new(0, 0)
       point = [
@@ -64,7 +72,6 @@ module Autocrew
         @speed.to_f,
       ]
 
-      @observations.sort_by!(&:game_time)
       @origin_time = @observations.first.game_time
 
       minimizer = Solver::ConstrainedMinimizer.new(Solver::RangeErrorFunction.new(self))

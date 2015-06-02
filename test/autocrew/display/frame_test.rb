@@ -12,14 +12,14 @@ module Autocrew
     end
 
     test "determine_bounds fails with no points" do
-      @state.expects(:display_points).returns([])
+      @frame.expects(:all_locations).returns([])
       assert !@frame.determine_bounds
       assert_nil @frame.origin
       assert_nil @frame.scale_factor
     end
 
     test "determine_bounds finds ratio-corrected bounds of points with 10% margin at edges" do
-      @state.expects(:display_points).returns([
+      @frame.expects(:all_locations).returns([
         Coord.new( 20, 10),
         Coord.new(-20,-10)
       ]) # 40 wide, 20 tall; limited by width; 48 width, 36 height
@@ -29,7 +29,7 @@ module Autocrew
     end
 
     test "determine_bounds with non-zero center" do
-      @state.expects(:display_points).returns([
+      @frame.expects(:all_locations).returns([
         Coord.new(120,  -90),
         Coord.new( 80, -110)
       ]) # 40 wide, 20 tall; limited by width; 48 width, 36 height
@@ -39,7 +39,7 @@ module Autocrew
     end
 
     test "determine_bounds while height-limited" do
-      @state.expects(:display_points).returns([
+      @frame.expects(:all_locations).returns([
         Coord.new( 10, 20),
         Coord.new(-10,-20)
       ]) # 20 wide, 40 tall; limited by height; 64 width, 48 height

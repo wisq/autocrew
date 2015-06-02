@@ -54,6 +54,10 @@ module Autocrew
       Vector.rad2deg(Math.atan2(x, y))
     end
 
+    def magnitude
+      Math.sqrt(x**2 + y**2)
+    end
+
     def inspect
       "#<#{self.class} x=#{x} y=#{y}>"
     end

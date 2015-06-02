@@ -96,6 +96,16 @@ module Autocrew
       assert_kind_of Commander::RestartCommand, parse("restart")
     end
 
+    test "focus" do
+      @world.focus = nil
+      command "s1 focus"
+      assert_equal "s1", @world.focus
+
+      @world.focus = nil
+      command "s1"
+      assert_equal "s1", @world.focus
+    end
+
     def parse(text)
       @commander.parse(text)
     end
