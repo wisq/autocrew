@@ -60,6 +60,14 @@ module Autocrew
       self.to_f < other.to_f
     end
 
+    def <=(other)
+      self.to_f <= other.to_f
+    end
+
+    def >=(other)
+      self.to_f >= other.to_f
+    end
+
     def >(other)
       self.to_f > other.to_f
     end

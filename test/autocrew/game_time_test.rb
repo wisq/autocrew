@@ -56,6 +56,17 @@ module Autocrew
       time2 = GameTime.from_values(9, 10, 11, 12.13)
       assert time1 < time2
       assert time2 > time1
+
+      assert time1 <= time2
+      assert time2 >= time1
+
+      assert time1 <= time1
+      assert time2 >= time2
+
+      assert (time1 <=> time2) < 0
+      assert (time2 <=> time1) > 0
+      assert_equal 0, (time1 <=> time1)
+      assert_equal 0, (time2 <=> time2)
     end
 
     test "glomp and unglomp" do
