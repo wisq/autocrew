@@ -44,12 +44,13 @@ module Autocrew
 
     def main_thread
       puts "Welcome to autocrew!"
+      commander = Commander.new
 
       stty_save = `stty -g`.chomp
       begin
         while line = Readline.readline("> ")
           begin
-            Commander.parse(line).execute(@state)
+            commander.parse(line).execute(@state)
           rescue StandardError => e
             puts "Error while running command: #{e}"
             puts "  (at #{e.backtrace.first})"

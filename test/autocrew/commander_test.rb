@@ -77,6 +77,21 @@ module Autocrew
       assert_in_delta GameTime.parse("22:30").to_f, @world.stopwatch.now.to_f
     end
 
+    test "initialise ownship" do
+      @world = WorldState.new
+      assert_nil @world.ownship
+
+      command("at 10:00 ownship course 123 speed 5")
+
+      assert @ownship = @world.ownship
+      assert_equal 1, @ownship.events.count
+      assert_kind_of Event::Initial, event = @ownship.events.first
+
+      assert_equal GameTime.parse("10:00"), event.game_time
+      assert_equal 123, event.course
+      assert_equal 5, event.speed
+    end
+
     test "restart" do
       assert_kind_of Commander::RestartCommand, parse("restart")
     end

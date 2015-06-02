@@ -1,4 +1,7 @@
-require 'autocrew'
+require 'autocrew/game_time'
+require 'autocrew/ownship'
+require 'autocrew/stopwatch'
+require 'autocrew/event'
 
 module Autocrew
   class Commander
@@ -29,6 +32,7 @@ module Autocrew
         'at' => AtCommand,
         'sync' => SyncCommand,
         'restart' => RestartCommand,
+        'ownship' => OwnshipCommand,
         :match => {
           /^[a-z][0-9]+$/ => ContactCommander,
         }
@@ -91,6 +95,36 @@ module Autocrew
         contact = state.contacts[@id] || Contact.new
         contact.add_observation(state.ownship, @time || state.stopwatch.now, @bearing)
         state.contacts[@id] ||= contact
+      end
+    end
+
+    class OwnshipCommand
+      def self.parse(cmdr, _, text)
+        words = text.split(/\s+/)
+
+        if text =~ /^(?:course|bearing) (\S+) speed (\S+)$/
+          course = $1
+          speed  = $2
+        else
+          raise "Usage: ownship course ## speed ##"
+        end
+
+        raise ValueError unless course =~ /^[0-9]+(?:\.[0-9]+)?$/
+        raise ValueError unless speed  =~ /^[0-9]+(?:\.[0-9]+)?$/
+
+        return new(cmdr.game_time, course.to_f, speed.to_f)
+      end
+
+      def initialize(time, course, speed)
+        @time   = time
+        @course = course
+        @speed  = speed
+      end
+
+      def execute(state)
+        ownship = Ownship.new
+        ownship.add_event(Event::Initial.new(@time, @course, @speed))
+        state.ownship = ownship
       end
     end
 
