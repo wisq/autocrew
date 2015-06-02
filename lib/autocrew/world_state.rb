@@ -59,7 +59,12 @@ module Autocrew
       hour_ago = now - GameTime.parse("01:00")
       times = [hour_ago, now]
 
-      points = times.map { |time| @ownship.location(time) }
+      # Calculate ownship points of interest:
+      points = times.map { |time| @ownship.location(time) }.compact
+      if points.count == 1
+        points << @ownship.location(@ownship.initial_time)
+      end
+
       if contact = focused_contact
         points += times.map { |time| contact.location(time) }
       end

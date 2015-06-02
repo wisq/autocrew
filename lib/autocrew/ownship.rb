@@ -26,9 +26,27 @@ module Autocrew
       new(hash['events'])
     end
 
+    def initial_time
+      return nil if @events.empty?
+      return @events.first.game_time
+    end
+
     def distance_between(start_time, stop_time)
       speed = @events.first.speed  # FIXME support changing speed after initial
       return speed * (stop_time - start_time).hours_f
+    end
+
+    def course
+      @events.reverse.each do |event|
+        if event.respond_to?(:new_course)
+          return event.new_course
+        end
+      end
+      return @events.first.course
+    end
+
+    def speed
+      return @events.first.speed  # FIXME support changing speed after initial
     end
 
     def location(at_time)

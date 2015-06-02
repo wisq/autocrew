@@ -5,7 +5,7 @@ module Autocrew
   module Display
     class Window < Gosu::Window
       def initialize(state)
-        super(640, 480, false)
+        super(1280, 720, false)
         self.caption = "Autocrew"
 
         @state = state
@@ -18,14 +18,16 @@ module Autocrew
       end
 
       def draw
-        frame = Frame.new(@state, self.width, self.height)
-        image = frame.draw(self)
+        frame = Frame.new(self, @state)
+        image = frame.draw
 
         @next_redraw = Time.now + 0.5
         return super
       rescue Exception => e
         puts "Error in draw: #{e}"
-        puts "  (at #{e.backtrace.first})"
+        e.backtrace.take(3).each do |bt|
+          puts "  #{bt}"
+        end
         @next_redraw = Time.now + 3.0
       end
     end

@@ -59,6 +59,28 @@ module Autocrew
       assert_equal [coord1, coord2], points.sort_by(&:x)
     end
 
+    test "points of interest with brand new ownship" do
+      state = WorldState.new
+      state.ownship = ownship = mock
+      state.stopwatch = stopwatch = mock
+
+      time1 = GameTime.parse("13:37")
+      coord1 = Coord.new(-5,-5)
+      stopwatch.expects(:now).returns(time1)
+      ownship.expects(:location).with(time1).returns(coord1)
+
+      time2 = GameTime.parse("12:37")
+      ownship.expects(:location).with(time2).returns(nil)
+
+      time3 = GameTime.parse("13:00")
+      ownship.expects(:initial_time).returns(time3)
+      coord2 = Coord.new(5,5)
+      ownship.expects(:location).with(time3).returns(coord2)
+
+      points = state.display_points
+      assert_equal [coord1, coord2], points.sort_by(&:x)
+    end
+
     test "points of interest with a focused contact" do
       state = WorldState.new
       state.ownship = ownship = mock

@@ -46,6 +46,10 @@ module Autocrew
       self.class.new(@vector.mul(value))
     end
 
+    def /(value)
+      self * (1.0 / value)
+    end
+
     def bearing
       Vector.rad2deg(Math.atan2(x, y))
     end

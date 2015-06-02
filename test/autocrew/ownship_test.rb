@@ -25,6 +25,10 @@ module Autocrew
       assert_nil @ownship.location(GameTime.parse("00:00"))
     end
 
+    test "initial_time returns first event" do
+      assert_equal @start, @ownship.initial_time
+    end
+
     test "location at start is (0,0)" do
       loc = @ownship.location(@start)
       assert_coord 0.0, 0.0, loc
