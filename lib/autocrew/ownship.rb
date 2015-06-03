@@ -60,10 +60,15 @@ module Autocrew
 
       done = false
       @events.each_with_index do |event, index|
-        next if index == 0 # initial event
+        if index == 0 # initial event
+          last_time = event.game_time
+          next
+        end
 
         end_time = event.game_time
-        if end_time > at_time
+        time_portion = 1.0
+        if end_time >= at_time
+          time_portion = (at_time - last_time).to_f / (end_time - last_time).to_f
           end_time = at_time
           done = true
         end
@@ -73,8 +78,18 @@ module Autocrew
           turn_dir = event.turn_direction
           last_time = event.game_time
         elsif event.respond_to?(:new_course)
-          loc = loc.travel_curved(turn_dir, course, event.new_course, distance_between(last_time, end_time))
+          new_course = event.new_course
+          if time_portion < 1.0
+            if turn_dir == :starboard
+              new_course = course + (new_course - course)*time_portion
+            else
+              new_course = course - (course - new_course)*time_portion
+            end
+          end
+
+          loc = loc.travel_curved(turn_dir, course, new_course, distance_between(last_time, end_time))
           last_time = event.game_time
+          course = new_course
         end
 
         break if done

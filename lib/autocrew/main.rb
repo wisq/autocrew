@@ -13,6 +13,13 @@ module Autocrew
       else
         @state = WorldState.new
       end
+
+      ownship = Ownship.new
+      ownship.add_event Event::Initial.new(GameTime.parse("10:45"), 90, 6)
+      ownship.add_event Event::BeginTurn.new(GameTime.parse("10:50"), :starboard)
+      ownship.add_event Event::EndTurn.new(GameTime.parse("10:51"), 180)
+      @state.ownship = ownship
+      @state.stopwatch = Stopwatch.new(GameTime.parse("10:55"))
     end
 
     def run

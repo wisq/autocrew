@@ -49,7 +49,7 @@ module Autocrew
     test "location after 20.5 minutes is halfway into turn" do
       offset = GameTime.parse("00:20:30")
       loc = @ownship.location(@start + offset)
-      assert_coord 2.031830988618379, -0.03183098861837894, loc
+      assert_coord 2.045015815807855, -0.01864616142890283, loc
     end
 
     test "location after 21 minutes is completed turn" do
@@ -61,7 +61,7 @@ module Autocrew
     test "location after 10 hours 21 minutes is 60 nautical miles further south" do
       offset = GameTime.parse("10:21")
       loc = @ownship.location(@start + offset)
-      assert_coord 62.063661977236755, -0.06366197723675433, loc
+      assert_coord 2.063661977236755, -60.06366197723675433, loc
     end
   end
 end
