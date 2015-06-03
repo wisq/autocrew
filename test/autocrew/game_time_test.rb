@@ -13,10 +13,11 @@ module Autocrew
       assert_equal 4.5, time.second
     end
 
-    test "compare two GameTimes" do
+    test "equality of two GameTimes" do
       time1 = GameTime.from_values(1, 2, 3, 4.5)
       time2 = GameTime.from_values(1, 2, 3, 4.5)
       assert_equal time1, time2
+      assert time1.eql?(time2)
     end
 
     test "add two GameTimes" do
@@ -67,6 +68,26 @@ module Autocrew
       assert (time2 <=> time1) > 0
       assert_equal 0, (time1 <=> time1)
       assert_equal 0, (time2 <=> time2)
+    end
+
+    test "can be sorted" do
+      time1 = GameTime.from_values(0, 0, 0, 1)
+      time2 = GameTime.from_values(0, 0, 0, 2)
+      time3 = GameTime.from_values(0, 0, 0, 3)
+
+      assert_equal [time1, time2, time3], [time1, time3, time2].sort
+      assert_equal [time1, time2, time3], [time2, time3, time1].sort
+      assert_equal [time1, time2, time3], [time2, time1, time3].sort
+      assert_equal [time1, time2, time3], [time3, time2, time1].sort
+    end
+
+    test "hashes correctly" do
+      time1 = GameTime.from_values(1, 2, 3, 4.5)
+      time2 = GameTime.from_values(1, 2, 3, 4.5)
+      assert_equal time1.hash, time2.hash
+
+      hash = {time1 => 1, time2 => 2}
+      assert_equal 1, hash.count
     end
 
     test "glomp and unglomp" do

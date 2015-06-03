@@ -174,10 +174,9 @@ module Autocrew
         location = ownship.location(@now)
         draw_ship(@state.ownship, location)
 
-        last_loc = location
+        last_loc = nil
         @ownship_locations.sort.each do |_, loc|
-          next if last_loc == loc
-          draw_line(last_loc, loc)
+          draw_line(last_loc, loc) unless last_loc.nil?
           last_loc = loc
         end
       end

@@ -44,9 +44,14 @@ module Autocrew
       @timestamp
     end
 
+    def hash
+      self.class.hash + @timestamp.hash
+    end
+
     def ==(other)
       other.to_f == self.to_f
     end
+    alias eql? ==
 
     def +(other)
       self.class.new(@timestamp + other.to_f)
