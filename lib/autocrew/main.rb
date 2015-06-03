@@ -16,10 +16,17 @@ module Autocrew
     end
 
     def run
-      @window = Display::Window.new(@state)
-      Thread.new { solver_thread }
-      Thread.new { main_thread }
-      @window.show
+      Thread.abort_on_exception = true
+
+      threads = %w(display solver input).map do |name|
+        Thread.new { send(:"#{name}_thread") }
+      end
+
+      ThreadsWait.new(threads).all_waits
+    end
+
+    def display_thread
+      Display::Window.new(@state).loop
     end
 
     def solver_thread
@@ -35,14 +42,9 @@ module Autocrew
 
         sleep(2)
       end
-    rescue Exception => e
-      puts "Error in solver thread: #{e}"
-      puts "  (at #{e.backtrace.first})"
-    ensure
-      @window.close
     end
 
-    def main_thread
+    def input_thread
       puts "Welcome to autocrew!"
       commander = Commander.new
 
@@ -60,11 +62,6 @@ module Autocrew
         system("stty", stty_save)
         exit
       end
-    rescue Exception => e
-      puts "Error in main thread: #{e}"
-      puts "  (at #{e.backtrace.first})"
-    ensure
-      @window.close
     end
   end
 end

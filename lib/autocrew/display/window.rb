@@ -1,33 +1,30 @@
+require 'rubygame'
 require 'autocrew/display/frame'
 
 module Autocrew
   module Display
-    class Window < Gosu::Window
+    class Window
       def initialize(state)
-        super(1280, 720, false)
-        self.caption = "Autocrew"
-
         @state = state
-        @next_redraw = Time.now
-        @fps = 0
+        @screen = Rubygame::Screen.new([1280,720])
+        @screen.title = "Autocrew"
       end
 
-      def needs_redraw?
-        return Time.now > @next_redraw
+      def loop
+        loop { one_loop }
       end
 
-      def draw
+      def one_loop
         frame = Frame.new(self, @state)
         image = frame.draw
 
-        @next_redraw = Time.now + 0.5
-        return super
+        sleep(0.5)
       rescue Exception => e
         puts "Error in draw: #{e}"
         e.backtrace.take(3).each do |bt|
           puts "  #{bt}"
         end
-        @next_redraw = Time.now + 3.0
+        sleep(3)
       end
     end
   end
