@@ -1,4 +1,3 @@
-require 'gosu'
 require 'autocrew/display/frame'
 
 module Autocrew

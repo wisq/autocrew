@@ -1,5 +1,3 @@
-require 'gosu'
-require 'texplay'
 require 'autocrew/display'
 require 'autocrew/contact'
 
