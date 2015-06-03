@@ -82,7 +82,7 @@ module Autocrew
         image.draw(-100, -100, 0, 100, 100)
       end
 
-      def draw_ship(ship, location = ship.location(@now))
+      def draw_ship(ship, location, course)
         return unless ship.speed && location
 
         position = screen_position(location)
@@ -105,8 +105,8 @@ module Autocrew
         speed_scale = ship.speed / 6.0 * @scale_factor / line_image.height
 
         ship_image.draw_rot(*position, 3, 0)
-        line_image.draw_rot(*position, 2, ship.course, 0.5, 1, 1, speed_scale)
-        arrow_image.draw_rot(*position, 3, ship.course, 0.5, line_image.height * speed_scale / arrow_image.height)
+        line_image.draw_rot(*position, 2, course, 0.5, 1, 1, speed_scale)
+        arrow_image.draw_rot(*position, 3, course, 0.5, line_image.height * speed_scale / arrow_image.height)
       end
 
       def time_horizon
@@ -123,7 +123,7 @@ module Autocrew
           @ownship_locations[time] = loc if loc
         end
 
-        step = GameTime.parse("00:00:15")
+        step = GameTime.parse("00:00:05")
         time = @now.floor(step)
         bounds_determined = false
 
@@ -171,8 +171,8 @@ module Autocrew
 
       def draw_ownship
         ownship = @state.ownship
-        location = ownship.location(@now)
-        draw_ship(@state.ownship, location)
+        location, course = ownship.location_and_course(@now)
+        draw_ship(@state.ownship, location, course)
 
         last_loc = nil
         @ownship_locations.sort.each do |_, loc|
@@ -184,7 +184,7 @@ module Autocrew
       def draw_contacts
         ownship = @state.ownship
         active_contacts.each do |id, contact|
-          draw_ship(contact)
+          draw_ship(contact, contact.location(@now), contact.course)
 
           contact.observations.each do |obs|
             loc = obs.observer.location(obs.game_time)

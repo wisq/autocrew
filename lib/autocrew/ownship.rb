@@ -36,20 +36,16 @@ module Autocrew
       return speed * (stop_time - start_time).hours_f
     end
 
-    def course
-      @events.reverse.each do |event|
-        if event.respond_to?(:new_course)
-          return event.new_course
-        end
-      end
-      return @events.first.course
-    end
-
     def speed
       return @events.first.speed  # FIXME support changing speed after initial
     end
 
     def location(at_time)
+      loc, _ = location_and_course(at_time)
+      return loc
+    end
+
+    def location_and_course(at_time)
       loc = Coord.new(0,0)
 
       initial   = @events.first
@@ -96,7 +92,7 @@ module Autocrew
       end
 
       loc = loc.travel(course, distance_between(last_time, at_time)) unless done
-      return loc
+      return [loc, course]
     end
   end
 end
