@@ -102,7 +102,7 @@ module Autocrew
         arrow_image = shape(:arrowhead, :color => colour, :thickness => LINE_THICKNESS)
         line_image = shape(:line, :color => colour)
 
-        speed_scale = ship.speed / 6.0 * @scale_factor / line_image.height
+        speed_scale = speed_arrow_length(ship.speed) / arrow_image.height
 
         ship_image.draw_rot(*position, 3, 0)
         line_image.draw_rot(*position, 2, course, 0.5, 1, 1, speed_scale)
@@ -111,6 +111,10 @@ module Autocrew
 
       def time_horizon
         return @now - GameTime.parse("01:00") # FIXME option set on contact?
+      end
+
+      def speed_arrow_length(speed)
+        return speed * 10  # pixels
       end
 
       def trace_ownship
@@ -148,7 +152,7 @@ module Autocrew
 
       def active_contacts
         focused = @state.focused_contact
-        return [focused] if focused
+        return {@state.focus => focused} if focused
         return @state.contacts
       end
 

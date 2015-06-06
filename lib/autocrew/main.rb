@@ -18,8 +18,17 @@ module Autocrew
       ownship.add_event Event::Initial.new(GameTime.parse("10:45"), 90, 6)
       ownship.add_event Event::BeginTurn.new(GameTime.parse("10:50"), :starboard)
       ownship.add_event Event::EndTurn.new(GameTime.parse("10:51"), 180)
+
+      contact = Contact.new
+      contact.course = 105
+      contact.speed  = 4
+      contact.origin = Coord.new(0, -0.1)
+      contact.origin_time = GameTime.parse("10:47")
+
       @state.ownship = ownship
       @state.stopwatch = Stopwatch.new(GameTime.parse("10:55"))
+      @state.contacts = {'s1' => contact}
+      @state.focus = 's1'
     end
 
     def run
@@ -55,7 +64,7 @@ module Autocrew
 
       stty_save = `stty -g`.chomp
       begin
-        while line = Readline.readline("> ")
+        while line = Readline.readline("> ", true)
           begin
             commander.parse(line).execute(@state)
           rescue StandardError => e

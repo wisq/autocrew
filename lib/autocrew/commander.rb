@@ -186,7 +186,7 @@ module Autocrew
       end
 
       def execute(state)
-        eval(@code)
+        puts "=> #{eval(@code).inspect}"
       end
     end
   end

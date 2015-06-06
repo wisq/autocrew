@@ -50,6 +50,7 @@ module Autocrew
     end
 
     def initial_time
+      return @origin_time if @origin_time
       return nil if @observations.empty?
       @observations.first.game_time
     end
