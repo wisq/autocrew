@@ -12,13 +12,13 @@ module Autocrew
       DEFAULT_COLOUR = :black
       OWNSHIP_COLOUR = :red
       CONTACT_COLOUR = :blue
-      OBSERVATION_COLOUR = [0.3, 0.3, 0.3, 1.0]
+      OBSERVATION_COLOUR = [0, 0, 0, 0.3]
       LINE_THICKNESS = 3
+      OBSERVATION_THICKNESS = 1
 
       def initialize(window, state)
         @window = window
         @state = state
-        @shapes = {}
       end
 
       def width
@@ -98,11 +98,12 @@ module Autocrew
         point_image.paint { pixel 0, 0, :color => :black }
         point_image.draw(*position, 10)
 
-        ship_image = shape(shape, :color => colour, :thickness => LINE_THICKNESS)
-        arrow_image = shape(:arrowhead, :color => colour, :thickness => LINE_THICKNESS)
-        line_image = shape(:line, :color => colour)
+        params = {:color => colour, :thickness => LINE_THICKNESS}
+        ship_image = shape(shape, params)
+        arrow_image = shape(:arrowhead, params)
+        line_image = shape(:line, params)
 
-        speed_scale = speed_arrow_length(ship.speed) / arrow_image.height
+        speed_scale = speed_arrow_length(ship.speed) / arrow_image.height / 2
 
         ship_image.draw_rot(*position, 3, 0)
         line_image.draw_rot(*position, 2, course, 0.5, 1, 1, speed_scale)
@@ -191,10 +192,11 @@ module Autocrew
           draw_ship(contact, contact.location(@now), contact.course)
 
           contact.observations.each do |obs|
+            next if obs.game_time > @now
             loc = obs.observer.location(obs.game_time)
             next unless loc
             target = loc.travel(obs.bearing, 100)
-            draw_line(loc, target, 1, OBSERVATION_COLOUR)
+            draw_line(loc, target, 1, OBSERVATION_COLOUR, OBSERVATION_THICKNESS)
           end
         end
 
@@ -205,7 +207,7 @@ module Autocrew
 
 
       def shape(*args)
-        return @shapes[args] ||= make_shape_image(*args)
+        return @window.shape_cache[args] ||= make_shape_image(*args)
       end
 
       def make_shape_image(shape, params)
@@ -217,8 +219,9 @@ module Autocrew
             line 7, 0, 14, 7, params
           end
         elsif shape == :line
-          image = Gosu::Image.new(TexPlay::EmptyImageStub.new(4, 32))
-          image.paint { rect 1, 0, 2, 31, params.merge(:fill => true) }
+          thickness = params[:thickness] || LINE_THICKNESS
+          image = Gosu::Image.new(TexPlay::EmptyImageStub.new(thickness + 1, 32))
+          image.paint { rect 1, 0, thickness - 1, 31, params.merge(:fill => true) }
         elsif shape == :circle
           image = Gosu::Image.new(TexPlay::EmptyImageStub.new(20, 20))
           image.paint do
@@ -236,8 +239,8 @@ module Autocrew
         return image
       end
 
-      def draw_line(coord1, coord2, z = 1, colour = DEFAULT_COLOUR)
-        image = shape(:line, :color => colour)
+      def draw_line(coord1, coord2, z = 1, colour = DEFAULT_COLOUR, thickness = LINE_THICKNESS)
+        image = shape(:line, :color => colour, :thickness => thickness)
 
         vector = coord2 - coord1
         angle  = vector.bearing % 360

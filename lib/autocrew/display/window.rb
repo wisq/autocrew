@@ -4,6 +4,8 @@ require 'autocrew/display/frame'
 module Autocrew
   module Display
     class Window < Gosu::Window
+      attr_accessor :shape_cache
+
       def initialize(state)
         super(1280, 720, false)
         self.caption = "Autocrew"
@@ -11,6 +13,7 @@ module Autocrew
         @state = state
         @next_redraw = Time.now
         @fps = 0
+        @shape_cache = {}
       end
 
       def needs_redraw?
