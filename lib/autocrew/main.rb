@@ -15,15 +15,31 @@ module Autocrew
       end
 
       ownship = Ownship.new
-      ownship.add_event Event::Initial.new(GameTime.parse("10:45"), 90, 6)
-      ownship.add_event Event::BeginTurn.new(GameTime.parse("10:50"), :starboard)
-      ownship.add_event Event::EndTurn.new(GameTime.parse("10:51"), 180)
+      ownship.add_event Event::Initial.new(GameTime.parse("10:00"), 60, 8)
+      ownship.add_event Event::BeginTurn.new(GameTime.parse("10:20"), :starboard)
+      ownship.add_event Event::EndTurn.new(GameTime.parse("10:21"), 130)
+      ownship.add_event Event::BeginTurn.new(GameTime.parse("10:40"), :port)
+      ownship.add_event Event::EndTurn.new(GameTime.parse("10:41"), 80)
 
       contact = Contact.new
-      contact.course = 105
-      contact.speed  = 4
-      contact.origin = Coord.new(0, -0.1)
-      contact.origin_time = GameTime.parse("10:47")
+      #contact.origin = Coord.new(1.2, 3.4)
+      #contact.origin_time = GameTime.parse("10:00")
+      #contact.course = 123
+      #contact.speed  = 6
+
+      contact.add_observation(ownship, GameTime.parse("10:00"), 19.440)
+      contact.add_observation(ownship, GameTime.parse("10:05"), 20.450)
+      contact.add_observation(ownship, GameTime.parse("10:10"), 21.993)
+      contact.add_observation(ownship, GameTime.parse("10:15"), 24.635)
+      contact.add_observation(ownship, GameTime.parse("10:20"), 30.160)
+      contact.add_observation(ownship, GameTime.parse("10:25"), 23.209)
+      contact.add_observation(ownship, GameTime.parse("10:30"), 16.619)
+      contact.add_observation(ownship, GameTime.parse("10:35"), 11.191)
+      contact.add_observation(ownship, GameTime.parse("10:40"), 6.718)
+      contact.add_observation(ownship, GameTime.parse("10:45"), 357.571)
+      contact.add_observation(ownship, GameTime.parse("10:50"), 340.383)
+      contact.add_observation(ownship, GameTime.parse("10:55"), 308.636)
+      contact.add_observation(ownship, GameTime.parse("11:00"), 272.378)
 
       @state.ownship = ownship
       @state.stopwatch = Stopwatch.new(GameTime.parse("10:55"))
