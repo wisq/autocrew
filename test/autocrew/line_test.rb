@@ -16,5 +16,12 @@ module Autocrew
       assert_equal start, line.start
       assert_equal vector, line.vector
     end
+
+    test "distance_to" do
+      line = Line.new(Coord.new(5, -5), Coord.new(-5, 5))
+      point = Coord.new(2, 2)
+      # Closest point is (0,0), distance is sqrt(2^2 + 2^2) = sqrt(8).
+      assert_in_delta Math.sqrt(8), line.distance_to(point)
+    end
   end
 end

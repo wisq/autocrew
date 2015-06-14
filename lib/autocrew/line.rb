@@ -18,6 +18,7 @@ module Autocrew
       end
     end
 
+    # Distance from point (coord) to nearest point on this line.
     def distance_to(coord)
       @vector.cross_vector.normal.dot_product(coord - @start)
     end
