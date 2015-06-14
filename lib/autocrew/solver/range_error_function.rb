@@ -11,13 +11,13 @@ module Autocrew::Solver
     end
 
     def evaluate(pos_x, pos_y, nvel_x, nvel_y, speed)
-      super(Coord.new(pos_x, pos_y), Vector.create(nvel_x, nvel_y) * speed)
+      super(Coord.new(pos_x, pos_y), Vector.new(nvel_x, nvel_y) * speed)
     end
 
     def evaluate_gradient(pos_x, pos_y, nvel_x, nvel_y, speed)
       unit_start = Coord.new(pos_x, pos_y)
       time_offset = @unit.origin_time
-      normal_velocity = Vector.create(nvel_x, nvel_y)
+      normal_velocity = Vector.new(nvel_x, nvel_y)
       velocity = normal_velocity * speed
 
       x_deriv = y_deriv = vx_deriv = vy_deriv = speed_deriv = 0.0

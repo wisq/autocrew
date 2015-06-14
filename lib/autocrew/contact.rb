@@ -84,7 +84,7 @@ module Autocrew
       pos_x, pos_y, nvel_x, nvel_y, speed = minimizer.minimize(point, stats)
 
       @origin = Coord.new(pos_x, pos_y)
-      @course = Vector.create(nvel_x, nvel_y).bearing
+      @course = Vector.new(nvel_x, nvel_y).bearing
       @speed  = speed
 
       return stats

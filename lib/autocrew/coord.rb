@@ -21,7 +21,7 @@ module Autocrew
     end
 
     def -(other)
-      Vector.create(@x - other.x, @y - other.y)
+      Vector.new(@x - other.x, @y - other.y)
     end
 
     def ==(other)

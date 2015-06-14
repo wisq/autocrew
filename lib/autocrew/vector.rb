@@ -3,11 +3,7 @@ require 'autocrew'
 
 module Autocrew
   class Vector
-    attr_reader :vector
-
-    def self.create(x, y)
-      new(GSL::Vector.alloc(x, y))
-    end
+    attr_reader :x, :y
 
     def self.deg2rad(degrees)
       degrees * Math::PI / 180
@@ -19,19 +15,12 @@ module Autocrew
 
     def self.bearing(degrees)
       radians = deg2rad(degrees)
-      create(Math.sin(radians), Math.cos(radians))
+      new(Math.sin(radians), Math.cos(radians))
     end
 
-    def initialize(vector)
-      @vector = vector
-    end
-
-    def x
-      @vector[0]
-    end
-
-    def y
-      @vector[1]
+    def initialize(x, y)
+      @x = x
+      @y = y
     end
 
     def dot_product(other)
@@ -39,11 +28,11 @@ module Autocrew
     end
 
     def cross_vector
-      self.class.create(y, -x)
+      self.class.new(y, -x)
     end
 
     def *(value)
-      self.class.new(@vector.mul(value))
+      self.class.new(x*value, y*value)
     end
 
     def /(value)
@@ -56,6 +45,10 @@ module Autocrew
 
     def magnitude
       Math.sqrt(x**2 + y**2)
+    end
+
+    def normal
+      self / magnitude
     end
 
     def inspect

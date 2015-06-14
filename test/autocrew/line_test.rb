@@ -12,7 +12,7 @@ module Autocrew
     end
 
     test "create from vector" do
-      line = Line.new(start = Coord.new(-4,-1), vector = Vector.create(4, -3))
+      line = Line.new(start = Coord.new(-4,-1), vector = Vector.new(4, -3))
       assert_equal start, line.start
       assert_equal vector, line.vector
     end

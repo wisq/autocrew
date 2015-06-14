@@ -36,16 +36,16 @@ module Autocrew
     end
 
     test "convert to bearing" do
-      v = Vector.create(0.0, 1.0)
+      v = Vector.new(0.0, 1.0)
       assert_in_delta 0.0, v.bearing
 
-      v = Vector.create(1.0, 0.0)
+      v = Vector.new(1.0, 0.0)
       assert_in_delta 90.0, v.bearing
 
-      v = Vector.create(0.70710678118654752440084436210484903929, -0.70710678118654752440084436210484903928)
+      v = Vector.new(0.70710678118654752440084436210484903929, -0.70710678118654752440084436210484903928)
       assert_in_delta 135.0, v.bearing
 
-      v = Vector.create(-0.80901699437494742410229341718281905887, -0.58778525229247312916870595463907276859)
+      v = Vector.new(-0.80901699437494742410229341718281905887, -0.58778525229247312916870595463907276859)
       assert_in_delta 234.0, v.bearing % 360.0
     end
   end

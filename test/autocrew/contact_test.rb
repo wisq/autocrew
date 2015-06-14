@@ -75,7 +75,7 @@ module Autocrew
         1.0, 2.0, # origin
         0.838670567945424, -0.5446390350150271, # course in vector format
         12.0 # speed
-      ], anything)
+      ], anything).returns([0, 0, 0, 0, 0])
       contact.solve
     end
 
